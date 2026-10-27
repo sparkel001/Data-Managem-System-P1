@@ -1,0 +1,6 @@
+{
+  "executed_at": "2026-10-16T19:29:38.489236+08:00",
+  "command": ".venv/Scripts/python -m tests.browser_demo",
+  "returncode": 0,
+  "output": "Browser scenario: 1 passed, 0 failed (register/create/questions/rules/publish/validate/jump/submit/statistics/mobile width)\n"
+}

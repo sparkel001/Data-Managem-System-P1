@@ -1,0 +1,183 @@
+{
+  "type": "文件与文档一致性检查，不连接数据库",
+  "checks": [
+    {
+      "check": "五项用户报告检查保留通过来源",
+      "passed": true
+    },
+    {
+      "check": "六项可选人工计划保持未执行",
+      "passed": true
+    },
+    {
+      "check": "六项计划均有自动化依据与范围说明",
+      "passed": true
+    },
+    {
+      "check": "AI_USAGE_LOG.md区分后续用户检查",
+      "passed": true
+    },
+    {
+      "check": "BANK_COPY_MESSAGES.md区分后续用户检查",
+      "passed": true
+    },
+    {
+      "check": "TEST_CASES.md区分后续用户检查",
+      "passed": true
+    },
+    {
+      "check": "phase2真实结果数量",
+      "passed": true
+    },
+    {
+      "check": "submission-20261027真实结果数量",
+      "passed": true
+    },
+    {
+      "check": "索引不含测试兼容内部理由",
+      "passed": true
+    },
+    {
+      "check": "README移除打包说明",
+      "passed": true
+    },
+    {
+      "check": "验证记录移除本机路径及ZIP说明",
+      "passed": true
+    },
+    {
+      "check": "docs/AI_USAGE_LOG.md链接 TEST_RESULTS.md",
+      "passed": true
+    },
+    {
+      "check": "docs/AI_USAGE_LOG.md链接 TEST_COVERAGE_AUDIT.md",
+      "passed": true
+    },
+    {
+      "check": "docs/AI_USAGE_LOG.md链接 TEST_CASES.md",
+      "passed": true
+    },
+    {
+      "check": "docs/AI_USAGE_LOG.md链接 AI_USAGE_PHASE2.md",
+      "passed": true
+    },
+    {
+      "check": "docs/AI_USAGE_LOG.md链接 MANUAL_TESTS.md",
+      "passed": true
+    },
+    {
+      "check": "docs/BANK_COPY_MESSAGES.md链接 MANUAL_TESTS.md",
+      "passed": true
+    },
+    {
+      "check": "docs/TEST_CASES.md链接 TEST_CASES_PHASE2.md",
+      "passed": true
+    },
+    {
+      "check": "docs/TEST_CASES.md链接 TEST_CASES_PHASE2.md",
+      "passed": true
+    },
+    {
+      "check": "docs/TEST_CASES.md链接 TEST_CASES_BANK_COPY.md",
+      "passed": true
+    },
+    {
+      "check": "docs/TEST_CASES.md链接 MANUAL_TESTS.md",
+      "passed": true
+    },
+    {
+      "check": "docs/REPORT_TEMPLATE.md链接 REPORT_PHASE2.md",
+      "passed": true
+    },
+    {
+      "check": "docs/REPORT_TEMPLATE.md链接 REPORT.md",
+      "passed": true
+    },
+    {
+      "check": "docs/REPORT_TEMPLATE.md链接 DATABASE.md",
+      "passed": true
+    },
+    {
+      "check": "docs/REPORT_TEMPLATE.md链接 API.md",
+      "passed": true
+    },
+    {
+      "check": "docs/REPORT_TEMPLATE.md链接 LOGIC.md",
+      "passed": true
+    },
+    {
+      "check": "docs/REPORT_TEMPLATE.md链接 TEST_CASES_PHASE2.md",
+      "passed": true
+    },
+    {
+      "check": "docs/REPORT_TEMPLATE.md链接 SUBMISSION_REVIEW.md",
+      "passed": true
+    },
+    {
+      "check": "docs/REPORT_TEMPLATE.md链接 MANUAL_TESTS.md",
+      "passed": true
+    },
+    {
+      "check": "docs/REPORT_TEMPLATE.md链接 AI_USAGE_PHASE2.md",
+      "passed": true
+    },
+    {
+      "check": "docs/SUBMISSION_REVIEW.md链接 MANUAL_TESTS.md",
+      "passed": true
+    },
+    {
+      "check": "README.md链接 docs/REPORT_PHASE2.md",
+      "passed": true
+    },
+    {
+      "check": "README.md链接 docs/MIGRATION_PHASE2.md",
+      "passed": true
+    },
+    {
+      "check": "README.md链接 docs/TEST_CASES_PHASE2.md",
+      "passed": true
+    },
+    {
+      "check": "README.md链接 docs/AI_USAGE_PHASE2.md",
+      "passed": true
+    },
+    {
+      "check": "README.md链接 docs/SUBMISSION_REVIEW.md",
+      "passed": true
+    },
+    {
+      "check": "README.md链接 docs/TEST_RESULTS.md",
+      "passed": true
+    },
+    {
+      "check": "README.md链接 docs/LOGIC.md",
+      "passed": true
+    },
+    {
+      "check": "README.md链接 docs/AUTH_UI_CHANGE.md",
+      "passed": true
+    },
+    {
+      "check": "README.md链接 docs/REGISTRATION_INTEGRITY.md",
+      "passed": true
+    },
+    {
+      "check": "README.md链接 docs/BANK_COPY_MESSAGES.md",
+      "passed": true
+    },
+    {
+      "check": "README.md链接 docs/REPORT_PHASE2.md",
+      "passed": true
+    },
+    {
+      "check": "README.md链接 docs/REPORT_TEMPLATE.md",
+      "passed": true
+    },
+    {
+      "check": "README.md链接 docs/MANUAL_TESTS.md",
+      "passed": true
+    }
+  ],
+  "passed": 44,
+  "failed": 0
+}

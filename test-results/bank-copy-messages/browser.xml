@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="3" time="23.056" timestamp="2026-10-27T00:11:52.718462+08:00" hostname="LAPTOP-981VB2MG"><testcase classname="tests.test_bank_copy_browser" name="test_bank_copy_and_readable_errors" time="4.703"><failure message="AssertionError: assert 0 == 2&#10; +  where 0 = count()&#10; +    where count = &lt;Locator frame=&lt;Frame name= url='http://127.0.0.1:65334/'&gt; selector='#sourceSurvey option'&gt;.count&#10; +      where &lt;Locator frame=&lt;Frame name= url='http://127.0.0.1:65334/'&gt; selector='#sourceSurvey option'&gt; = locator('#sourceSurvey option')&#10; +        where locator = &lt;Page url='http://127.0.0.1:65334/'&gt;.locator">client = &lt;starlette.testclient.TestClient object at 0x000002078585EF90&gt;
+
+    @case('题库与提示浏览器验证', '浏览器模拟非JSON/网络错误；创建空题库，从自己的问卷复制题目，重复保存，加入另一题库。',
+          '数字题年龄；他人私有问卷；纯文本/HTML/无效JSON/英文错误和断网响应',
+          '提示全中文且无状态码或原始异常；空状态有引导；不显示私有问卷；复制保留内容，重复不新增；候选过滤正确。')
+    def test_bank_copy_and_readable_errors(client):
+        pw=pytest.importorskip('playwright.sync_api')
+        h=login(client);sid,qs=survey_with_questions(client,h,[question_input('number',title='问卷中的年龄',min_value=0,max_value=120)])
+        other=login(client,'other');survey_with_questions(client,other,[question_input('text',title='他人的私有题目')])
+        token=h['Authorization'].removeprefix('Bearer ')
+        sock=socket.socket();sock.bind(('127.0.0.1',0));origin=f'http://127.0.0.1:{sock.getsockname()[1]}'
+        server=uvicorn.Server(uvicorn.Config(create_app(Settings(mongo_uri='mongodb://127.0.0.1:27017',database=client.app.state.db.name)),log_level='error'))
+        thread=threading.Thread(target=server.run,kwargs={'sockets':[sock]},daemon=True);thread.start()
+        try:
+            for _ in range(100):
+                if server.started: break
+                time.sleep(.1)
+            assert server.started
+            with pw.sync_playwright() as p:
+                browser=p.chromium.launch(channel='msedge',headless=True);page=browser.new_page()
+                page.add_init_script('sessionStorage.setItem("survey_token",'+json.dumps(token)+')')
+                errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
+                page.goto(origin);pw.expect(page.locator('#banks')).to_be_visible()
+                for status,ctype,body in [(500,'text/plain','Internal Server Error'),(503,'text/html','&lt;html&gt;Unavailable&lt;/html&gt;'),
+                    (500,'application/json','Invalid JSON'),(422,'application/json','{"detail":[{"msg":"Field required","loc":["body","title"]}]}'),
+                    (400,'application/json','{"detail":"Traceback internal_error"}')]:
+                    page.route('**/api/question-banks',lambda route,request,status=status,ctype=ctype,body=body:route.fulfill(status=status,content_type=ctype,body=body))
+                    page.locator('#notice').evaluate('(el)=&gt;el.textContent=""')
+                    page.locator('#banks').click();pw.expect(page.locator('#notice')).not_to_be_empty()
+                    message=page.locator('#notice').inner_text()
+                    assert re.search('[\u3400-\u9fff]',message) and not re.search('[A-Za-z_{}\[\]0-9]',message)
+                    page.unroute('**/api/question-banks')
+                page.route('**/api/question-banks',lambda route:route.abort())
+                page.locator('#banks').click();pw.expect(page.locator('#notice')).to_contain_text('无法连接')
+                page.unroute('**/api/question-banks')
+                page.locator('#banks').click();page.locator('#newBank').click();page.locator('#bankName').fill('第一个库')
+                page.get_by_role('button',name='保存题库').click();page.locator('[data-bank]').click()
+                pw.expect(page.locator('#noCandidates')).to_contain_text('从我的问卷选择题目')
+                assert page.locator('#existingFamily').count()==0
+                page.locator('#copyFromSurvey').click()
+&gt;               assert page.locator('#sourceSurvey option').count()==2
+E               AssertionError: assert 0 == 2
+E                +  where 0 = count()
+E                +    where count = &lt;Locator frame=&lt;Frame name= url='http://127.0.0.1:65334/'&gt; selector='#sourceSurvey option'&gt;.count
+E                +      where &lt;Locator frame=&lt;Frame name= url='http://127.0.0.1:65334/'&gt; selector='#sourceSurvey option'&gt; = locator('#sourceSurvey option')
+E                +        where locator = &lt;Page url='http://127.0.0.1:65334/'&gt;.locator
+
+tests\test_bank_copy_browser.py:52: AssertionError</failure></testcase><testcase classname="tests.test_auth_browser" name="test_separate_auth_views" time="9.923" /><testcase classname="tests.test_phase2_block7_browser" name="test_library_browser_flow" time="7.897" /></testsuite></testsuites>

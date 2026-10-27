@@ -1,0 +1,82 @@
+{
+  "executed_at": "2026-10-27T00:37:18.536584+08:00",
+  "exitstatus": 0,
+  "cases": [
+    {
+      "id": "AUTO-001",
+      "nodeid": "tests/test_block9.py::test_offline_docs",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "categories": [
+        "其他"
+      ],
+      "steps": "读取/docs、OpenAPI；扫描本地静态文件。",
+      "inputs": "5个本地资源文件。",
+      "expected": "docs200；schema含单题统计路径与QuestionInput；静态文件没有外部http链接。",
+      "preconditions": "本机MongoDB可用；每实例独立UUID测试库。",
+      "parameters": {},
+      "source": "def test_offline_docs(client):\n    assert client.get(\"/docs\").status_code == 200\n    schema=client.get(\"/openapi.json\").json()\n    assert \"/api/surveys/{sid}/stats/{qid}\" in schema[\"paths\"]\n    assert \"QuestionInput\" in schema[\"components\"][\"schemas\"]\n    for asset in (\"index.html\",\"docs.html\",\"app.js\",\"docs.js\",\"style.css\"):\n        content=(Path(__file__).parents[1]/\"app\"/\"static\"/asset).read_text(encoding=\"utf-8\")\n        assert \"https://\" not in content and \"http://\" not in content\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.23984769999515265,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.17749929998535663,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.015520300017669797,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_538f96ccc28645afad5793ba24167fe1"
+    },
+    {
+      "id": "AUTO-002",
+      "nodeid": "tests/test_block9.py::test_documentation_present",
+      "origin": "已有",
+      "type": "自动化单元/文件检查",
+      "categories": [
+        "其他"
+      ],
+      "steps": "检查7份文档存在且长度大于100；检查.env.example。",
+      "inputs": "DATABASE/API/LOGIC/MANUAL_TESTS/REPORT_TEMPLATE/AI_USAGE_LOG/TEST_RESULTS。",
+      "expected": "文档非空且环境示例含MONGODB_URI；仅检查存在性，不证明文档业务覆盖。",
+      "preconditions": "纯函数/本地文件自动测试；无需MongoDB业务数据。",
+      "parameters": {},
+      "source": "def test_documentation_present():\n    root=Path(__file__).parents[1]\n    for name in (\"DATABASE.md\",\"API.md\",\"LOGIC.md\",\"MANUAL_TESTS.md\",\"REPORT_TEMPLATE.md\",\"AI_USAGE_LOG.md\",\"TEST_RESULTS.md\"):\n        assert len((root/\"docs\"/name).read_text(encoding=\"utf-8\")) > 100\n    assert \"MONGODB_URI\" in (root/\".env.example\").read_text()\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.00020410004071891308,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.03423750004731119,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.00024530000519007444,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": null
+    }
+  ]
+}

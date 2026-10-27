@@ -1,0 +1,107 @@
+{
+  "scope": "README and every Markdown document in docs",
+  "files": [
+    {
+      "path": "README.md",
+      "characters": 7753,
+      "sha256": "06f58dc595025d40f44f82ec5752d7af01868a1d6e33ae99b5e9361991a8be79"
+    },
+    {
+      "path": "docs/AI_USAGE_LOG.md",
+      "characters": 2173,
+      "sha256": "cea2aa0bb8e877fdc2bf54c6d67ff97d16aca50213f2d5f9f4c27291aab7fe8f"
+    },
+    {
+      "path": "docs/AI_USAGE_PHASE2.md",
+      "characters": 4350,
+      "sha256": "e2eb5ed882c5b498e630bce9eb8d51744dc559d40e31c5bc57057d255255a587"
+    },
+    {
+      "path": "docs/API.md",
+      "characters": 5928,
+      "sha256": "9d411839587ad5e521b08d22da456b4398a936be8d767d0bf64192de07178abf"
+    },
+    {
+      "path": "docs/AUTH_UI_CHANGE.md",
+      "characters": 1114,
+      "sha256": "77b8a5330342588c35f9f9c779145d5fb0becc6afdbf8d4f014f8947e2c6c555"
+    },
+    {
+      "path": "docs/BANK_COPY_MESSAGES.md",
+      "characters": 3688,
+      "sha256": "bd2fddd733c966d37c8a42009aa94482671e467e4021ad05b3eb253a04590914"
+    },
+    {
+      "path": "docs/DATABASE.md",
+      "characters": 5322,
+      "sha256": "ef94d2210ce420610cc6d780a4827395ac414097253b09ac9370e7b34032b2fa"
+    },
+    {
+      "path": "docs/LOGIC.md",
+      "characters": 2082,
+      "sha256": "7f0a47244f8eedd2976f99c4a6ffc5c14685eae4e9f99c23877dced691ea1399"
+    },
+    {
+      "path": "docs/MANUAL_TESTS.md",
+      "characters": 2901,
+      "sha256": "216159764a807cae1144dfe3ff944f5d7742d4598a1faedef02598df8cf85592"
+    },
+    {
+      "path": "docs/MIGRATION_PHASE2.md",
+      "characters": 1288,
+      "sha256": "077a645feaa09ec4c78ae97dce65806afa4847a081c150aabbbc29dbab53cc4a"
+    },
+    {
+      "path": "docs/PASSWORD_POLICY.md",
+      "characters": 991,
+      "sha256": "c2518d7c985c975f2a166016c6c697e3fb85ddefb8b1133fa05f9362d92083ee"
+    },
+    {
+      "path": "docs/REPORT.md",
+      "characters": 5812,
+      "sha256": "0bf4d78dc03a902e64ef24a54ec119d63a5dc089fd530f2a2d64f19dff2d10e1"
+    },
+    {
+      "path": "docs/REPORT_PHASE2.md",
+      "characters": 7371,
+      "sha256": "5b703e808d0ee6ecbd95548c5fdc1b788151ef0d326394b9cc317cb2269d3c1d"
+    },
+    {
+      "path": "docs/REPORT_TEMPLATE.md",
+      "characters": 937,
+      "sha256": "d48e7b7e5eb136440108642100c2d4ee582952ec23b60cb66ba4d201191279c9"
+    },
+    {
+      "path": "docs/SUBMISSION_REVIEW.md",
+      "characters": 1966,
+      "sha256": "d9507d26d2a35e51714e6c49df93eb81b4fb4aab64758d3b11ccee5331f39063"
+    },
+    {
+      "path": "docs/TEST_CASES.md",
+      "characters": 88656,
+      "sha256": "c1de79ef605dcb78b60f14b8dd5616cde34c4d9b3661978af9cd418281e5b92b"
+    },
+    {
+      "path": "docs/TEST_CASES_BANK_COPY.md",
+      "characters": 5146,
+      "sha256": "9fe39a4223203fd5243b89e2686ceba7edb638023e5cda72600edec8acb56bf4"
+    },
+    {
+      "path": "docs/TEST_CASES_PHASE2.md",
+      "characters": 95254,
+      "sha256": "169c093949e4b1c917b09dcdbd2f6b1afda855133720417b7d5f24406ca0229e"
+    },
+    {
+      "path": "docs/TEST_COVERAGE_AUDIT.md",
+      "characters": 3283,
+      "sha256": "8fb54a3d1c10389d8e51313e111c4df4ded379112b6d8a67c09b70d90da423ad"
+    },
+    {
+      "path": "docs/TEST_RESULTS.md",
+      "characters": 4086,
+      "sha256": "5ed58ed29dc340869afd7e59622635d8dffd15419906b692e7f57133f1874dfd"
+    }
+  ],
+  "merged": [],
+  "deleted": []
+}

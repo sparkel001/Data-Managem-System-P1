@@ -1,0 +1,123 @@
+{
+  "archive_sha256": "298339d2ca107cb805f32ad52b1abf03a0baaa0e4d04e929d18d6d8b4e0b34f5",
+  "files": [
+    {
+      "path": "docs/AI_USAGE_LOG.md",
+      "category": "phase1-document",
+      "sha256": "59ec091e47e24de39b8a870d41dc38d3f33715588ee5fcabd449a396e5cd349e",
+      "zip_project_submission_bytes_equal": true
+    },
+    {
+      "path": "docs/API.md",
+      "category": "phase1-document",
+      "sha256": "ea0340896c33c1beaeead732e6b2eb09bb27a6231b5b5220986bb258ecd0eb23",
+      "zip_project_submission_bytes_equal": true
+    },
+    {
+      "path": "docs/DATABASE.md",
+      "category": "phase1-document",
+      "sha256": "25172af76d02d99daddec0c74b3368b8c8adcff7c2428c7706b508d45fb97872",
+      "zip_project_submission_bytes_equal": true
+    },
+    {
+      "path": "docs/LOGIC.md",
+      "category": "phase1-document",
+      "sha256": "152cc8a43a19b81d960ec1fb82b909b2b45d9aa9d06f70aa8dedc9ba909adee7",
+      "zip_project_submission_bytes_equal": true
+    },
+    {
+      "path": "docs/REPORT.md",
+      "category": "phase1-document",
+      "sha256": "c7e59ec8c496c011e32e0592b6d716adab1582afef1d1b44a581f80040221715",
+      "zip_project_submission_bytes_equal": true
+    },
+    {
+      "path": "docs/TEST_CASES.md",
+      "category": "phase1-document",
+      "sha256": "e98dbe1d09a871444ecc9cffdeea99e8116a4701bef5b37fe7069b098975b8ac",
+      "zip_project_submission_bytes_equal": true
+    },
+    {
+      "path": "docs/TEST_COVERAGE_AUDIT.md",
+      "category": "phase1-document",
+      "sha256": "86eb1ed2c622a7bb88295af252c48e28090f1723575aea7fbde1eb2949e8d39b",
+      "zip_project_submission_bytes_equal": true
+    },
+    {
+      "path": "docs/TEST_RESULTS.md",
+      "category": "phase1-document",
+      "sha256": "312549cec876fe3d0c846ee969f325bf4a5dbee18eb628331b881127e781340d",
+      "zip_project_submission_bytes_equal": true
+    },
+    {
+      "path": "test-results/browser-stats.png",
+      "category": "phase1-test-evidence",
+      "sha256": "6af2c746cd7228ee2f2653173c145a267237b355f6722b8346c98aebc7ffe973",
+      "zip_project_submission_bytes_equal": true
+    },
+    {
+      "path": "test-results/coverage-audit/browser.json",
+      "category": "phase1-test-evidence",
+      "sha256": "72cf058345564a03f3bc25393040ab6f9154635bd3eed3482d7c5d7b52aedbe8",
+      "zip_project_submission_bytes_equal": true
+    },
+    {
+      "path": "test-results/coverage-audit/business-files-before.json",
+      "category": "phase1-test-evidence",
+      "sha256": "7239bfe524d57e6930e60596f4bc09c38bf3e407bb883270b5f945677948d655",
+      "zip_project_submission_bytes_equal": true
+    },
+    {
+      "path": "test-results/coverage-audit/business-integrity.json",
+      "category": "phase1-test-evidence",
+      "sha256": "27fdac8705814504081e7ca06d33189ac23ef0532a80d66c0b7c00fce5130240",
+      "zip_project_submission_bytes_equal": true
+    },
+    {
+      "path": "test-results/coverage-audit/cases.json",
+      "category": "phase1-test-evidence",
+      "sha256": "97afa47da6c55314c18fd88ea22599431441e9bcb81b6a7b9cdbb46f2b6e70e3",
+      "zip_project_submission_bytes_equal": true
+    },
+    {
+      "path": "test-results/coverage-audit/first-run-cases.json",
+      "category": "phase1-test-evidence",
+      "sha256": "b0c3057db2e9d83a3cf2f761bdd0e9c8acf57676964a7ee9ad6e8252adfc6f01",
+      "zip_project_submission_bytes_equal": true
+    },
+    {
+      "path": "test-results/coverage-audit/first-run-pytest.xml",
+      "category": "phase1-test-evidence",
+      "sha256": "e0a5aeb742ff43577f6d33ff2acaff27702da1793d8ed51ebd36adc25c723e29",
+      "zip_project_submission_bytes_equal": true
+    },
+    {
+      "path": "test-results/coverage-audit/pytest.xml",
+      "category": "phase1-test-evidence",
+      "sha256": "5841b25a669674381d525e145c86945dad85052f890ab9e9094e9ed03e706c50",
+      "zip_project_submission_bytes_equal": true
+    },
+    {
+      "path": "test-results/coverage-audit/timestamp-recheck.json",
+      "category": "phase1-test-evidence",
+      "sha256": "8c15138d9a66139b0889029cb33ea5c6027d77ca96556b0a4d8f90b115e5d224",
+      "zip_project_submission_bytes_equal": true
+    },
+    {
+      "path": "test-results/coverage-audit/timestamp-recheck.xml",
+      "category": "phase1-test-evidence",
+      "sha256": "5467fc044e6ef4c7e72414f19d103310bd92c8109413987ba04143871096bf63",
+      "zip_project_submission_bytes_equal": true
+    },
+    {
+      "path": "test-results/pytest.xml",
+      "category": "phase1-test-evidence",
+      "sha256": "99de12dafa67547beee7351691031db04d99c2e60c084665b3752de069e12bb4",
+      "zip_project_submission_bytes_equal": true
+    }
+  ],
+  "protected_code_config_and_archive_files": 66,
+  "protected_files_unchanged": true,
+  "database_access": false,
+  "generators_run": false
+}

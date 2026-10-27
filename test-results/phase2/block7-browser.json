@@ -1,0 +1,44 @@
+{
+  "executed_at": "2026-10-22T14:01:36.993049+08:00",
+  "exitstatus": 0,
+  "cases": [
+    {
+      "id": "AUTO-001",
+      "nodeid": "tests/test_phase2_block7_browser.py::test_library_browser_flow",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "Edge中创建题库/题目、分支/恢复、分享/撤销；选题加入问卷、换版、发布填写、查使用及统计。",
+      "inputs": "数字题年龄、答案16，reader共享账号，390px视窗",
+      "expected": "页面流程完成；三版本；快照换版成功；统计16；使用清单可见；无JS异常和横向溢出。",
+      "categories": [
+        "第二阶段浏览器自动化"
+      ],
+      "parameters": {},
+      "source": "@case('第二阶段浏览器自动化', 'Edge中创建题库/题目、分支/恢复、分享/撤销；选题加入问卷、换版、发布填写、查使用及统计。', '数字题年龄、答案16，reader共享账号，390px视窗', '页面流程完成；三版本；快照换版成功；统计16；使用清单可见；无JS异常和横向溢出。')\ndef test_library_browser_flow(client):\n    playwright = pytest.importorskip('playwright.sync_api')\n    login(client,'reader')\n    sock=socket.socket();sock.bind(('127.0.0.1',0));port=sock.getsockname()[1]\n    settings=Settings(mongo_uri='mongodb://127.0.0.1:27017',database=client.app.state.db.name)\n    server=uvicorn.Server(uvicorn.Config(create_app(settings),log_level='error'))\n    thread=threading.Thread(target=server.run,kwargs={'sockets':[sock]},daemon=True);thread.start()\n    try:\n        for _ in range(100):\n            if server.started: break\n            time.sleep(.1)\n        assert server.started\n        with playwright.sync_playwright() as p:\n            browser=p.chromium.launch(channel='msedge',headless=True)\n            page=browser.new_page(viewport={'width':1280,'height':900})\n            errors=[];page.on('pageerror',lambda e:errors.append(str(e)))\n            page.goto(f'http://127.0.0.1:{port}')\n            page.locator('#username').fill('browser_phase2');page.locator('#password').fill('password123')\n            page.locator('#register').click();playwright.expect(page.locator('#notice')).to_contain_text('注册成功')\n            page.get_by_role('button',name='登录',exact=True).click()\n            page.locator('#banks').click();page.locator('#newBank').click()\n            page.locator('#bankName').fill('课堂题库');page.get_by_role('button',name='保存题库').click()\n            page.locator('[data-bank]').click();page.locator('#newBankQuestion').click()\n            page.locator('#qt').fill('年龄');page.locator('#kind').select_option('number')\n            page.locator('#integer').check();page.get_by_role('button',name='保存题目').click()\n            page.locator('[data-family]').click();page.locator('[data-branch]').first.click()\n            page.locator('#qt').fill('年龄第二版');page.get_by_role('button',name='保存题目').click()\n            playwright.expect(page.locator('[data-version-row]')).to_have_count(2)\n            page.locator('[data-restore]').first.click()\n            playwright.expect(page.locator('[data-version-row]')).to_have_count(3)\n            page.locator('#shareUsername').fill('reader');page.get_by_role('button',name='分享题目',exact=True).click()\n            playwright.expect(page.locator('[data-revoke]')).to_have_count(1)\n            page.locator('[data-revoke]').click();playwright.expect(page.locator('[data-revoke]')).to_have_count(0)\n            page.locator('#back').click();page.locator('#back').click()\n            page.locator('#new').click();page.locator('#title').fill('题库复用演示')\n            page.locator('#anonymous').check();page.get_by_role('button',name='保存',exact=True).click()\n            page.locator('#importLibrary').click();page.locator('[data-family]').click();page.locator('[data-pick]').first.click()\n            page.locator('[data-switch]').click();page.locator('[data-family]').click();page.locator('[data-pick]').last.click()\n            page.locator('#publish').click();playwright.expect(page.locator('#notice')).to_contain_text('已发布')\n            share=page.locator('a[href^=\"/survey/\"]').get_attribute('href')\n            page.goto(f'http://127.0.0.1:{port}'+share);page.locator('#answer').fill('16')\n            page.get_by_role('button',name='下一步').click();page.locator('#submit').click()\n            playwright.expect(page.get_by_role('heading',name='提交成功')).to_be_visible()\n            page.goto(f'http://127.0.0.1:{port}');page.locator('[data-open]').click();page.locator('[data-cross]').click()\n            playwright.expect(page.locator('#app')).to_contain_text('平均值：16')\n            page.locator('#versionFilter').select_option(index=3)\n            playwright.expect(page.locator('#app')).to_contain_text('平均值：16')\n            page.screenshot(path='test-results/phase2/browser-library-stats.png',full_page=True)\n            page.set_viewport_size({'width':390,'height':844})\n            assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth')\n            page.locator('#back').click();page.locator('#banks').click();page.locator('[data-family]').first.click();page.locator('#usages').click()\n            playwright.expect(page.locator('#app')).to_contain_text('题库复用演示')\n            assert errors==[],errors\n            browser.close()\n    finally:\n        server.should_exit=True;thread.join(timeout=10);sock.close()\n        assert not thread.is_alive()\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.15505629999097437,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 8.0606972000096,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.015174900006968528,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_346e864dc31d4193b6feedec0298c255"
+    }
+  ]
+}

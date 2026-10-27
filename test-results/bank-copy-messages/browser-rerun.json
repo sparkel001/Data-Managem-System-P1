@@ -1,0 +1,44 @@
+{
+  "executed_at": "2026-10-27T00:12:56.253370+08:00",
+  "exitstatus": 0,
+  "cases": [
+    {
+      "id": "AUTO-001",
+      "nodeid": "tests/test_bank_copy_browser.py::test_bank_copy_and_readable_errors",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "浏览器模拟非JSON/网络错误；创建空题库，从自己的问卷复制题目，重复保存，加入另一题库。",
+      "inputs": "数字题年龄；他人私有问卷；纯文本/HTML/无效JSON/英文错误和断网响应",
+      "expected": "提示全中文且无状态码或原始异常；空状态有引导；不显示私有问卷；复制保留内容，重复不新增；候选过滤正确。",
+      "categories": [
+        "题库与提示浏览器验证"
+      ],
+      "parameters": {},
+      "source": "@case('题库与提示浏览器验证', '浏览器模拟非JSON/网络错误；创建空题库，从自己的问卷复制题目，重复保存，加入另一题库。',\n      '数字题年龄；他人私有问卷；纯文本/HTML/无效JSON/英文错误和断网响应',\n      '提示全中文且无状态码或原始异常；空状态有引导；不显示私有问卷；复制保留内容，重复不新增；候选过滤正确。')\ndef test_bank_copy_and_readable_errors(client):\n    pw=pytest.importorskip('playwright.sync_api')\n    h=login(client);sid,qs=survey_with_questions(client,h,[question_input('number',title='问卷中的年龄',min_value=0,max_value=120)])\n    other=login(client,'other');survey_with_questions(client,other,[question_input('text',title='他人的私有题目')])\n    token=h['Authorization'].removeprefix('Bearer ')\n    sock=socket.socket();sock.bind(('127.0.0.1',0));origin=f'http://127.0.0.1:{sock.getsockname()[1]}'\n    server=uvicorn.Server(uvicorn.Config(create_app(Settings(mongo_uri='mongodb://127.0.0.1:27017',database=client.app.state.db.name)),log_level='error'))\n    thread=threading.Thread(target=server.run,kwargs={'sockets':[sock]},daemon=True);thread.start()\n    try:\n        for _ in range(100):\n            if server.started: break\n            time.sleep(.1)\n        assert server.started\n        with pw.sync_playwright() as p:\n            browser=p.chromium.launch(channel='msedge',headless=True);page=browser.new_page()\n            page.add_init_script('sessionStorage.setItem(\"survey_token\",'+json.dumps(token)+')')\n            errors=[];page.on('pageerror',lambda e:errors.append(str(e)))\n            page.goto(origin);pw.expect(page.locator('#banks')).to_be_visible()\n            for status,ctype,body in [(500,'text/plain','Internal Server Error'),(503,'text/html','<html>Unavailable</html>'),\n                (500,'application/json','Invalid JSON'),(422,'application/json','{\"detail\":[{\"msg\":\"Field required\",\"loc\":[\"body\",\"title\"]}]}'),\n                (400,'application/json','{\"detail\":\"Traceback internal_error\"}')]:\n                page.route('**/api/question-banks',lambda route,request,status=status,ctype=ctype,body=body:route.fulfill(status=status,content_type=ctype,body=body))\n                page.locator('#notice').evaluate('(el)=>el.textContent=\"\"')\n                page.locator('#banks').click();pw.expect(page.locator('#notice')).not_to_be_empty()\n                message=page.locator('#notice').inner_text()\n                assert re.search('[\\u3400-\\u9fff]',message) and not re.search(r'[A-Za-z_{}\\[\\]0-9]',message)\n                page.unroute('**/api/question-banks')\n            page.route('**/api/question-banks',lambda route:route.abort())\n            page.locator('#banks').click();pw.expect(page.locator('#notice')).to_contain_text('无法连接')\n            page.unroute('**/api/question-banks')\n            page.locator('#banks').click();page.locator('#newBank').click();page.locator('#bankName').fill('第一个库')\n            page.get_by_role('button',name='保存题库').click();page.locator('[data-bank]').click()\n            pw.expect(page.locator('#noCandidates')).to_contain_text('从我的问卷选择题目')\n            assert page.locator('#existingFamily').count()==0\n            page.locator('#copyFromSurvey').click()\n            pw.expect(page.locator('#sourceSurvey option')).to_have_count(2)\n            page.locator('#sourceSurvey').select_option(sid)\n            pw.expect(page.locator('#sourceQuestions')).to_contain_text('数字范围：0～120')\n            page.locator('[data-copy-question]').click()\n            pw.expect(page.locator('#notice')).to_contain_text('原问卷保持不变')\n            pw.expect(page.locator('[data-family]')).to_have_count(1)\n            page.locator('#copyFromSurvey').click();page.locator('#sourceSurvey').select_option(sid);page.locator('[data-copy-question]').click()\n            pw.expect(page.locator('#notice')).to_contain_text('无需重复保存')\n            page.locator('#back').click();page.locator('#newBank').click();page.locator('#bankName').fill('第二个库')\n            page.get_by_role('button',name='保存题库').click();page.locator('[data-bank]').last.click()\n            pw.expect(page.locator('#existingFamily option')).to_have_count(1)\n            page.get_by_role('button',name='加入当前题库',exact=True).click()\n            pw.expect(page.locator('#notice')).to_contain_text('已加入')\n            assert page.locator('#existingFamily').count()==0\n            assert client.app.state.db.bank_questions.count_documents({})==1\n            assert client.app.state.db.question_versions.count_documents({})==1\n            assert client.app.state.db.surveys.find_one({'_id':sid})['questions']==qs\n            assert errors==[],errors\n            browser.close()\n    finally:\n        server.should_exit=True;thread.join(timeout=10);sock.close()\n        assert not thread.is_alive()\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.1768213000614196,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 5.111345000099391,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.03888620005454868,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_2fab5bff82f642cc937635b5d6efbd4f"
+    }
+  ]
+}

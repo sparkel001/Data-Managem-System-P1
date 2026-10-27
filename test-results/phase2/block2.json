@@ -1,0 +1,204 @@
+{
+  "executed_at": "2026-10-22T13:53:41.008246+08:00",
+  "exitstatus": 0,
+  "cases": [
+    {
+      "id": "AUTO-001",
+      "nodeid": "tests/test_phase2_block2.py::test_bank_crud_four_types[single]",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "创建题库与题目；读取、编辑题库；移出再加入；对比MongoDB版本。",
+      "inputs": "四种题型，题库名称更新",
+      "expected": "完整保存内容；稳定题目族；移出不删除版本；可重新加入。",
+      "categories": [
+        "题库管理"
+      ],
+      "parameters": {
+        "kind": "single"
+      },
+      "source": "@case('题库管理', '创建题库与题目；读取、编辑题库；移出再加入；对比MongoDB版本。', '四种题型，题库名称更新', '完整保存内容；稳定题目族；移出不删除版本；可重新加入。')\n@pytest.mark.parametrize('kind', ['single', 'multiple', 'text', 'number'])\ndef test_bank_crud_four_types(client, kind):\n    h, b, q = library(client, kind)\n    assert q['latest_version']['content']['type'] == kind\n    assert client.put('/api/question-banks/'+b, headers=h, json={'name':'更新'}).json()['name'] == '更新'\n    assert len(client.get('/api/question-banks', headers=h).json()) == 1\n    path = f'/api/question-banks/{b}/questions/{q[\"id\"]}'\n    assert client.delete(path, headers=h).status_code == 200\n    assert client.get(f'/api/question-banks/{b}/questions', headers=h).json() == []\n    assert client.get('/api/bank-questions/'+q['id'], headers=h).status_code == 200\n    assert client.put(path, headers=h).status_code == 200\n    assert len(client.get(f'/api/question-banks/{b}/questions', headers=h).json()) == 1\n    assert client.app.state.db.question_versions.count_documents({}) == 1\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.14825119997840375,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.8292755000293255,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.016608000034466386,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_ce2cb8b6bf8d4457a88b0cb8890fa1ec"
+    },
+    {
+      "id": "AUTO-002",
+      "nodeid": "tests/test_phase2_block2.py::test_bank_crud_four_types[multiple]",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "创建题库与题目；读取、编辑题库；移出再加入；对比MongoDB版本。",
+      "inputs": "四种题型，题库名称更新",
+      "expected": "完整保存内容；稳定题目族；移出不删除版本；可重新加入。",
+      "categories": [
+        "题库管理"
+      ],
+      "parameters": {
+        "kind": "multiple"
+      },
+      "source": "@case('题库管理', '创建题库与题目；读取、编辑题库；移出再加入；对比MongoDB版本。', '四种题型，题库名称更新', '完整保存内容；稳定题目族；移出不删除版本；可重新加入。')\n@pytest.mark.parametrize('kind', ['single', 'multiple', 'text', 'number'])\ndef test_bank_crud_four_types(client, kind):\n    h, b, q = library(client, kind)\n    assert q['latest_version']['content']['type'] == kind\n    assert client.put('/api/question-banks/'+b, headers=h, json={'name':'更新'}).json()['name'] == '更新'\n    assert len(client.get('/api/question-banks', headers=h).json()) == 1\n    path = f'/api/question-banks/{b}/questions/{q[\"id\"]}'\n    assert client.delete(path, headers=h).status_code == 200\n    assert client.get(f'/api/question-banks/{b}/questions', headers=h).json() == []\n    assert client.get('/api/bank-questions/'+q['id'], headers=h).status_code == 200\n    assert client.put(path, headers=h).status_code == 200\n    assert len(client.get(f'/api/question-banks/{b}/questions', headers=h).json()) == 1\n    assert client.app.state.db.question_versions.count_documents({}) == 1\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.15406510001048446,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.9250243999995291,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.011575300013646483,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_9c43c78eaeaf4fdb88c2fe993e8e5740"
+    },
+    {
+      "id": "AUTO-003",
+      "nodeid": "tests/test_phase2_block2.py::test_bank_crud_four_types[text]",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "创建题库与题目；读取、编辑题库；移出再加入；对比MongoDB版本。",
+      "inputs": "四种题型，题库名称更新",
+      "expected": "完整保存内容；稳定题目族；移出不删除版本；可重新加入。",
+      "categories": [
+        "题库管理"
+      ],
+      "parameters": {
+        "kind": "text"
+      },
+      "source": "@case('题库管理', '创建题库与题目；读取、编辑题库；移出再加入；对比MongoDB版本。', '四种题型，题库名称更新', '完整保存内容；稳定题目族；移出不删除版本；可重新加入。')\n@pytest.mark.parametrize('kind', ['single', 'multiple', 'text', 'number'])\ndef test_bank_crud_four_types(client, kind):\n    h, b, q = library(client, kind)\n    assert q['latest_version']['content']['type'] == kind\n    assert client.put('/api/question-banks/'+b, headers=h, json={'name':'更新'}).json()['name'] == '更新'\n    assert len(client.get('/api/question-banks', headers=h).json()) == 1\n    path = f'/api/question-banks/{b}/questions/{q[\"id\"]}'\n    assert client.delete(path, headers=h).status_code == 200\n    assert client.get(f'/api/question-banks/{b}/questions', headers=h).json() == []\n    assert client.get('/api/bank-questions/'+q['id'], headers=h).status_code == 200\n    assert client.put(path, headers=h).status_code == 200\n    assert len(client.get(f'/api/question-banks/{b}/questions', headers=h).json()) == 1\n    assert client.app.state.db.question_versions.count_documents({}) == 1\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.14903839997714385,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.8397880999837071,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.03268679999746382,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_6ccfeb36c4b846d2b6dcb90efe21c2ff"
+    },
+    {
+      "id": "AUTO-004",
+      "nodeid": "tests/test_phase2_block2.py::test_bank_crud_four_types[number]",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "创建题库与题目；读取、编辑题库；移出再加入；对比MongoDB版本。",
+      "inputs": "四种题型，题库名称更新",
+      "expected": "完整保存内容；稳定题目族；移出不删除版本；可重新加入。",
+      "categories": [
+        "题库管理"
+      ],
+      "parameters": {
+        "kind": "number"
+      },
+      "source": "@case('题库管理', '创建题库与题目；读取、编辑题库；移出再加入；对比MongoDB版本。', '四种题型，题库名称更新', '完整保存内容；稳定题目族；移出不删除版本；可重新加入。')\n@pytest.mark.parametrize('kind', ['single', 'multiple', 'text', 'number'])\ndef test_bank_crud_four_types(client, kind):\n    h, b, q = library(client, kind)\n    assert q['latest_version']['content']['type'] == kind\n    assert client.put('/api/question-banks/'+b, headers=h, json={'name':'更新'}).json()['name'] == '更新'\n    assert len(client.get('/api/question-banks', headers=h).json()) == 1\n    path = f'/api/question-banks/{b}/questions/{q[\"id\"]}'\n    assert client.delete(path, headers=h).status_code == 200\n    assert client.get(f'/api/question-banks/{b}/questions', headers=h).json() == []\n    assert client.get('/api/bank-questions/'+q['id'], headers=h).status_code == 200\n    assert client.put(path, headers=h).status_code == 200\n    assert len(client.get(f'/api/question-banks/{b}/questions', headers=h).json()) == 1\n    assert client.app.state.db.question_versions.count_documents({}) == 1\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.17018409998854622,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.8317962000146508,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.011670100037008524,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_ff30d22bd9b44107acab77cc26444a68"
+    },
+    {
+      "id": "AUTO-005",
+      "nodeid": "tests/test_phase2_block2.py::test_bank_validation_permissions",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "尝试额外字段、无效题目和他人访问；检查数据库。",
+      "inputs": "source伪造、选项不足、其他用户",
+      "expected": "422或404/401；没有无效写入。",
+      "categories": [
+        "题库权限与校验"
+      ],
+      "parameters": {},
+      "source": "@case('题库权限与校验', '尝试额外字段、无效题目和他人访问；检查数据库。', 'source伪造、选项不足、其他用户', '422或404/401；没有无效写入。')\ndef test_bank_validation_permissions(client):\n    h, b, q = library(client)\n    other = login(client, 'other')\n    for payload in ({'content': question_input('number'), 'request_key':'x', 'source':{}},\n                    {'content': {'title':'bad','type':'single'}, 'request_key':'x'}):\n        assert client.post(f'/api/question-banks/{b}/questions', headers=h, json=payload).status_code == 422\n    assert client.get('/api/question-banks').status_code == 401\n    assert client.get(f'/api/question-banks/{b}/questions', headers=other).status_code == 404\n    assert client.put(f'/api/question-banks/{b}/questions/{q[\"id\"]}', headers=other).status_code == 404\n    assert client.get('/api/bank-questions/'+q['id'], headers=other).status_code == 404\n    assert client.app.state.db.bank_questions.count_documents({}) == 1\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.14304799999808893,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 1.5748205999843776,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.037676299980375916,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_0e5fa28d6759478d8b35d84b4f21b839"
+    }
+  ]
+}

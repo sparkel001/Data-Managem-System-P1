@@ -1,0 +1,82 @@
+{
+  "project": {
+    "documents": 14,
+    "local_links": 51,
+    "api_route_declarations": 42,
+    "evidence": {
+      "coverage-audit/cases.json": {
+        "executed_at": "2026-10-16T19:30:09.657881+08:00",
+        "counts": {
+          "passed": 114
+        }
+      },
+      "phase2/full.json": {
+        "executed_at": "2026-10-22T14:05:36.924807+08:00",
+        "counts": {
+          "passed": 145
+        }
+      },
+      "registration-fix/full.json": {
+        "executed_at": "2026-10-26T18:58:53.459938+08:00",
+        "counts": {
+          "passed": 151
+        }
+      },
+      "password-policy/full.json": {
+        "executed_at": "2026-10-26T23:47:37.470678+08:00",
+        "counts": {
+          "passed": 162
+        }
+      },
+      "submission-20261027/full.json": {
+        "executed_at": "2026-10-27T00:29:14.976873+08:00",
+        "counts": {
+          "passed": 175
+        }
+      }
+    },
+    "failures": []
+  },
+  "submission": {
+    "documents": 14,
+    "local_links": 51,
+    "api_route_declarations": 42,
+    "evidence": {
+      "coverage-audit/cases.json": {
+        "executed_at": "2026-10-16T19:30:09.657881+08:00",
+        "counts": {
+          "passed": 114
+        }
+      },
+      "phase2/full.json": {
+        "executed_at": "2026-10-22T14:05:36.924807+08:00",
+        "counts": {
+          "passed": 145
+        }
+      },
+      "registration-fix/full.json": {
+        "executed_at": "2026-10-26T18:58:53.459938+08:00",
+        "counts": {
+          "passed": 151
+        }
+      },
+      "password-policy/full.json": {
+        "executed_at": "2026-10-26T23:47:37.470678+08:00",
+        "counts": {
+          "passed": 162
+        }
+      },
+      "submission-20261027/full.json": {
+        "executed_at": "2026-10-27T00:29:14.976873+08:00",
+        "counts": {
+          "passed": 175
+        }
+      }
+    },
+    "failures": []
+  },
+  "comparison": {
+    "files": 165,
+    "mismatches": []
+  }
+}

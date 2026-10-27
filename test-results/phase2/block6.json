@@ -1,0 +1,423 @@
+{
+  "executed_at": "2026-10-22T13:57:56.847656+08:00",
+  "exitstatus": 0,
+  "cases": [
+    {
+      "id": "AUTO-001",
+      "nodeid": "tests/test_phase2_block6.py::test_cross_four_types[single-values0]",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "同一版本加入两个问卷；分别提交；查询跨问卷统计。",
+      "inputs": "单选a/b，多选[a,b]/[b]，文本甲/乙，数字10/20",
+      "expected": "答卷2、实例2、回答2；选项/文本/均值和分布精确。",
+      "categories": [
+        "跨问卷四题型统计"
+      ],
+      "parameters": {
+        "kind": "single",
+        "values": [
+          "a",
+          "b"
+        ]
+      },
+      "source": "@case('跨问卷四题型统计', '同一版本加入两个问卷；分别提交；查询跨问卷统计。', '单选a/b，多选[a,b]/[b]，文本甲/乙，数字10/20', '答卷2、实例2、回答2；选项/文本/均值和分布精确。')\n@pytest.mark.parametrize('kind,values',[('single',['a','b']),('multiple',[['a','b'],['b']]),('text',['甲','乙']),('number',[10,20])])\ndef test_cross_four_types(client,kind,values):\n    h,b,q=library(client,kind)\n    for value in values:\n        sid,a=import_into(client,h,q)\n        submit(client,h,sid,{a['id']:value})\n    data=client.get(f'/api/bank-questions/{q[\"id\"]}/stats',headers=h).json()\n    g=data['groups'][0]\n    assert data['total_responses']==g['total_responses']==g['answer_count']==g['survey_count']==g['instance_count']==2\n    if kind in ('single','multiple'):\n        assert [o['count'] for o in g['options']]==([1,1,0] if kind=='single' else [1,2,0])\n    else: assert g['values']==values\n    if kind=='number': assert g['average']==15 and g['distribution']==[{'value':10,'count':1},{'value':20,'count':1}]\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.15851269999984652,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.8607824000064284,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.0348678000154905,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_faaaa745d068438f987472ccc2aa06f3"
+    },
+    {
+      "id": "AUTO-002",
+      "nodeid": "tests/test_phase2_block6.py::test_cross_four_types[multiple-values1]",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "同一版本加入两个问卷；分别提交；查询跨问卷统计。",
+      "inputs": "单选a/b，多选[a,b]/[b]，文本甲/乙，数字10/20",
+      "expected": "答卷2、实例2、回答2；选项/文本/均值和分布精确。",
+      "categories": [
+        "跨问卷四题型统计"
+      ],
+      "parameters": {
+        "kind": "multiple",
+        "values": [
+          [
+            "a",
+            "b"
+          ],
+          [
+            "b"
+          ]
+        ]
+      },
+      "source": "@case('跨问卷四题型统计', '同一版本加入两个问卷；分别提交；查询跨问卷统计。', '单选a/b，多选[a,b]/[b]，文本甲/乙，数字10/20', '答卷2、实例2、回答2；选项/文本/均值和分布精确。')\n@pytest.mark.parametrize('kind,values',[('single',['a','b']),('multiple',[['a','b'],['b']]),('text',['甲','乙']),('number',[10,20])])\ndef test_cross_four_types(client,kind,values):\n    h,b,q=library(client,kind)\n    for value in values:\n        sid,a=import_into(client,h,q)\n        submit(client,h,sid,{a['id']:value})\n    data=client.get(f'/api/bank-questions/{q[\"id\"]}/stats',headers=h).json()\n    g=data['groups'][0]\n    assert data['total_responses']==g['total_responses']==g['answer_count']==g['survey_count']==g['instance_count']==2\n    if kind in ('single','multiple'):\n        assert [o['count'] for o in g['options']]==([1,1,0] if kind=='single' else [1,2,0])\n    else: assert g['values']==values\n    if kind=='number': assert g['average']==15 and g['distribution']==[{'value':10,'count':1},{'value':20,'count':1}]\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.1453767999773845,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.8746290999697521,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.011771499994210899,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_32a2257f30a24d3f8f9eab5af0c04b2a"
+    },
+    {
+      "id": "AUTO-003",
+      "nodeid": "tests/test_phase2_block6.py::test_cross_four_types[text-values2]",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "同一版本加入两个问卷；分别提交；查询跨问卷统计。",
+      "inputs": "单选a/b，多选[a,b]/[b]，文本甲/乙，数字10/20",
+      "expected": "答卷2、实例2、回答2；选项/文本/均值和分布精确。",
+      "categories": [
+        "跨问卷四题型统计"
+      ],
+      "parameters": {
+        "kind": "text",
+        "values": [
+          "甲",
+          "乙"
+        ]
+      },
+      "source": "@case('跨问卷四题型统计', '同一版本加入两个问卷；分别提交；查询跨问卷统计。', '单选a/b，多选[a,b]/[b]，文本甲/乙，数字10/20', '答卷2、实例2、回答2；选项/文本/均值和分布精确。')\n@pytest.mark.parametrize('kind,values',[('single',['a','b']),('multiple',[['a','b'],['b']]),('text',['甲','乙']),('number',[10,20])])\ndef test_cross_four_types(client,kind,values):\n    h,b,q=library(client,kind)\n    for value in values:\n        sid,a=import_into(client,h,q)\n        submit(client,h,sid,{a['id']:value})\n    data=client.get(f'/api/bank-questions/{q[\"id\"]}/stats',headers=h).json()\n    g=data['groups'][0]\n    assert data['total_responses']==g['total_responses']==g['answer_count']==g['survey_count']==g['instance_count']==2\n    if kind in ('single','multiple'):\n        assert [o['count'] for o in g['options']]==([1,1,0] if kind=='single' else [1,2,0])\n    else: assert g['values']==values\n    if kind=='number': assert g['average']==15 and g['distribution']==[{'value':10,'count':1},{'value':20,'count':1}]\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.18365559994708747,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.8649390999926254,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.035896999994292855,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_d8361025efab43e28f1efb91a8a7d2de"
+    },
+    {
+      "id": "AUTO-004",
+      "nodeid": "tests/test_phase2_block6.py::test_cross_four_types[number-values3]",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "同一版本加入两个问卷；分别提交；查询跨问卷统计。",
+      "inputs": "单选a/b，多选[a,b]/[b]，文本甲/乙，数字10/20",
+      "expected": "答卷2、实例2、回答2；选项/文本/均值和分布精确。",
+      "categories": [
+        "跨问卷四题型统计"
+      ],
+      "parameters": {
+        "kind": "number",
+        "values": [
+          10,
+          20
+        ]
+      },
+      "source": "@case('跨问卷四题型统计', '同一版本加入两个问卷；分别提交；查询跨问卷统计。', '单选a/b，多选[a,b]/[b]，文本甲/乙，数字10/20', '答卷2、实例2、回答2；选项/文本/均值和分布精确。')\n@pytest.mark.parametrize('kind,values',[('single',['a','b']),('multiple',[['a','b'],['b']]),('text',['甲','乙']),('number',[10,20])])\ndef test_cross_four_types(client,kind,values):\n    h,b,q=library(client,kind)\n    for value in values:\n        sid,a=import_into(client,h,q)\n        submit(client,h,sid,{a['id']:value})\n    data=client.get(f'/api/bank-questions/{q[\"id\"]}/stats',headers=h).json()\n    g=data['groups'][0]\n    assert data['total_responses']==g['total_responses']==g['answer_count']==g['survey_count']==g['instance_count']==2\n    if kind in ('single','multiple'):\n        assert [o['count'] for o in g['options']]==([1,1,0] if kind=='single' else [1,2,0])\n    else: assert g['values']==values\n    if kind=='number': assert g['average']==15 and g['distribution']==[{'value':10,'count':1},{'value':20,'count':1}]\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.13540430000284687,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.9291013000183739,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.035176999983377755,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_f29ef3975f91450387e6f1d66d1da387"
+    },
+    {
+      "id": "AUTO-005",
+      "nodeid": "tests/test_phase2_block6.py::test_cross_empty[single]",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "保存题目但无问卷答卷；查询统计。",
+      "inputs": "四种题型",
+      "expected": "答卷和回答数0；数字平均值null、分布空。",
+      "categories": [
+        "跨问卷空数据"
+      ],
+      "parameters": {
+        "kind": "single"
+      },
+      "source": "@case('跨问卷空数据', '保存题目但无问卷答卷；查询统计。', '四种题型', '答卷和回答数0；数字平均值null、分布空。')\n@pytest.mark.parametrize('kind',['single','multiple','text','number'])\ndef test_cross_empty(client,kind):\n    h,b,q=library(client,kind)\n    data=client.get(f'/api/bank-questions/{q[\"id\"]}/stats',headers=h).json()\n    g=data['groups'][0]\n    assert data['total_responses']==g['answer_count']==0\n    if kind=='number': assert g['average'] is None and g['distribution']==[]\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.16312140005175024,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.8450205999542959,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.03096539998659864,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_1b84a8e53ffa4707b6fe799b3d406b04"
+    },
+    {
+      "id": "AUTO-006",
+      "nodeid": "tests/test_phase2_block6.py::test_cross_empty[multiple]",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "保存题目但无问卷答卷；查询统计。",
+      "inputs": "四种题型",
+      "expected": "答卷和回答数0；数字平均值null、分布空。",
+      "categories": [
+        "跨问卷空数据"
+      ],
+      "parameters": {
+        "kind": "multiple"
+      },
+      "source": "@case('跨问卷空数据', '保存题目但无问卷答卷；查询统计。', '四种题型', '答卷和回答数0；数字平均值null、分布空。')\n@pytest.mark.parametrize('kind',['single','multiple','text','number'])\ndef test_cross_empty(client,kind):\n    h,b,q=library(client,kind)\n    data=client.get(f'/api/bank-questions/{q[\"id\"]}/stats',headers=h).json()\n    g=data['groups'][0]\n    assert data['total_responses']==g['answer_count']==0\n    if kind=='number': assert g['average'] is None and g['distribution']==[]\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.14456510002491996,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.8749381999950856,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.013735399988945574,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_e0d2da063bf64eb6bf0ef94b459681a9"
+    },
+    {
+      "id": "AUTO-007",
+      "nodeid": "tests/test_phase2_block6.py::test_cross_empty[text]",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "保存题目但无问卷答卷；查询统计。",
+      "inputs": "四种题型",
+      "expected": "答卷和回答数0；数字平均值null、分布空。",
+      "categories": [
+        "跨问卷空数据"
+      ],
+      "parameters": {
+        "kind": "text"
+      },
+      "source": "@case('跨问卷空数据', '保存题目但无问卷答卷；查询统计。', '四种题型', '答卷和回答数0；数字平均值null、分布空。')\n@pytest.mark.parametrize('kind',['single','multiple','text','number'])\ndef test_cross_empty(client,kind):\n    h,b,q=library(client,kind)\n    data=client.get(f'/api/bank-questions/{q[\"id\"]}/stats',headers=h).json()\n    g=data['groups'][0]\n    assert data['total_responses']==g['answer_count']==0\n    if kind=='number': assert g['average'] is None and g['distribution']==[]\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.1396194000262767,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.8265468999743462,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.027865399955771863,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_23af3c760b264f3f9d3b31c2dd7136f1"
+    },
+    {
+      "id": "AUTO-008",
+      "nodeid": "tests/test_phase2_block6.py::test_cross_empty[number]",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "保存题目但无问卷答卷；查询统计。",
+      "inputs": "四种题型",
+      "expected": "答卷和回答数0；数字平均值null、分布空。",
+      "categories": [
+        "跨问卷空数据"
+      ],
+      "parameters": {
+        "kind": "number"
+      },
+      "source": "@case('跨问卷空数据', '保存题目但无问卷答卷；查询统计。', '四种题型', '答卷和回答数0；数字平均值null、分布空。')\n@pytest.mark.parametrize('kind',['single','multiple','text','number'])\ndef test_cross_empty(client,kind):\n    h,b,q=library(client,kind)\n    data=client.get(f'/api/bank-questions/{q[\"id\"]}/stats',headers=h).json()\n    g=data['groups'][0]\n    assert data['total_responses']==g['answer_count']==0\n    if kind=='number': assert g['average'] is None and g['distribution']==[]\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.14734490000410005,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.8969097000081092,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.014061499969102442,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_d81d0ce648c24ad783b3683aa833c8cd"
+    },
+    {
+      "id": "AUTO-009",
+      "nodeid": "tests/test_phase2_block6.py::test_versions_multi_instances_restore_and_filter",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "同卷放V1两次和V2一次；提交；查询全部及单版本；恢复V1再查询。",
+      "inputs": "V1答案10、20；V2答案100",
+      "expected": "总答卷1；V1回答2均值15；V2回答1均值100；恢复版本单独空组。",
+      "categories": [
+        "跨问卷版本与多实例"
+      ],
+      "parameters": {},
+      "source": "@case('跨问卷版本与多实例', '同卷放V1两次和V2一次；提交；查询全部及单版本；恢复V1再查询。', 'V1答案10、20；V2答案100', '总答卷1；V1回答2均值15；V2回答1均值100；恢复版本单独空组。')\ndef test_versions_multi_instances_restore_and_filter(client):\n    h,b,q=library(client)\n    sid,a=import_into(client,h,q); _,bq=import_into(client,h,q,sid)\n    v2=version(client,h,q).json(); _,c=import_into(client,h,q,sid,v2['id'])\n    submit(client,h,sid,{a['id']:10,bq['id']:20,c['id']:100})\n    url=f'/api/bank-questions/{q[\"id\"]}/stats'\n    data=client.get(url,headers=h).json(); groups={g['version_id']:g for g in data['groups']}\n    assert data['total_responses']==1\n    g=groups[q['latest_version']['id']]\n    assert g['answer_count']==2 and g['average']==15 and g['instance_count']==2 and g['total_responses']==1\n    assert groups[v2['id']]['average']==100\n    filtered=client.get(url,params={'version_id':v2['id']},headers=h).json()\n    assert len(filtered['groups'])==1 and filtered['groups'][0]['average']==100\n    restore=client.post(f'/api/bank-questions/{q[\"id\"]}/versions/{q[\"latest_version\"][\"id\"]}/restore',headers=h,json={'parent_version_id':v2['id'],'request_key':'restore'}).json()\n    data=client.get(url,headers=h).json()\n    assert len(data['groups'])==3\n    assert next(g for g in data['groups'] if g['version_id']==restore['id'])['answer_count']==0\n    assert client.get(url,params={'version_id':'missing'},headers=h).status_code==404\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.14659950003260747,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.9766655000275932,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.013441500021144748,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_f4c2a5e329914d12a83e065918ec07ac"
+    },
+    {
+      "id": "AUTO-010",
+      "nodeid": "tests/test_phase2_block6.py::test_cross_permissions_anonymity_revocation",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "共享题目，双方各收答卷；跨问卷查询；撤销共享后重查自己的统计。",
+      "inputs": "匿名答卷12和99；第三账号",
+      "expected": "各只统计自己问卷；无身份字段；撤销不影响已有快照统计。",
+      "categories": [
+        "跨问卷权限与匿名"
+      ],
+      "parameters": {},
+      "source": "@case('跨问卷权限与匿名', '共享题目，双方各收答卷；跨问卷查询；撤销共享后重查自己的统计。', '匿名答卷12和99；第三账号', '各只统计自己问卷；无身份字段；撤销不影响已有快照统计。')\ndef test_cross_permissions_anonymity_revocation(client):\n    h,b,q=library(client); reader=login(client,'reader'); stranger=login(client,'stranger')\n    base=f'/api/bank-questions/{q[\"id\"]}'\n    client.post(base+'/shares',headers=h,json={'username':'reader'})\n    for header,value in ((h,12),(reader,99)):\n        sid,a=import_into(client,header,q); submit(client,header,sid,{a['id']:value})\n    assert client.get(base+'/stats',headers=h).json()['groups'][0]['average']==12\n    r=client.get(base+'/stats',headers=reader)\n    assert r.json()['groups'][0]['average']==99\n    assert all(field not in r.text for field in ('respondent','username','once_key'))\n    assert client.get(base+'/stats',headers=stranger).status_code==404\n    client.delete(base+'/shares/reader',headers=h)\n    assert client.get(base+'/stats',headers=reader).json()['groups'][0]['average']==99\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.16201810003258288,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 2.7057918999926187,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.03740739997010678,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_b79dd1f6cf7647aba1887c147980f648"
+    }
+  ]
+}

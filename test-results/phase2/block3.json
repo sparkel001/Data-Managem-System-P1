@@ -1,0 +1,158 @@
+{
+  "executed_at": "2026-10-22T13:54:33.254927+08:00",
+  "exitstatus": 0,
+  "cases": [
+    {
+      "id": "AUTO-001",
+      "nodeid": "tests/test_phase2_block3.py::test_branch_restore_immutable",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "创建新版本、从初版分支、恢复初版；比较历史文档并重复恢复。",
+      "inputs": "V1→V2，V1→V3，恢复V1生成V4",
+      "expected": "父版本与恢复来源正确；V1未变；重复请求返回同一V4。",
+      "categories": [
+        "版本历史"
+      ],
+      "parameters": {},
+      "source": "@case('版本历史', '创建新版本、从初版分支、恢复初版；比较历史文档并重复恢复。', 'V1→V2，V1→V3，恢复V1生成V4', '父版本与恢复来源正确；V1未变；重复请求返回同一V4。')\ndef test_branch_restore_immutable(client):\n    h, b, q = library(client)\n    d = client.app.state.db\n    initial = d.question_versions.find_one()\n    v2 = version(client,h,q).json()\n    v3 = version(client,h,q,title='分支',key='branch').json()\n    assert v2['parent_version_id'] == v3['parent_version_id'] == initial['_id']\n    path = f'/api/bank-questions/{q[\"id\"]}/versions/{initial[\"_id\"]}/restore'\n    body = {'request_key':'restore','parent_version_id':v2['id']}\n    v4 = client.post(path,headers=h,json=body).json()\n    assert v4['version_no'] == 4 and v4['restored_from_version_id'] == initial['_id']\n    assert v4['parent_version_id'] == v2['id'] and v4['content'] == initial['content']\n    assert client.post(path,headers=h,json=body).json()['id'] == v4['id']\n    assert d.question_versions.find_one({'_id':initial['_id']}) == initial\n    assert len(client.get(f'/api/bank-questions/{q[\"id\"]}/versions',headers=h).json()) == 4\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.17196749994764104,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.8184881000197493,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.01631089998409152,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_859a727aefc8460fa740211ec69977ff"
+    },
+    {
+      "id": "AUTO-002",
+      "nodeid": "tests/test_phase2_block3.py::test_version_concurrent_idempotency",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "并发发送相同请求；再并发发送不同请求；复用键改变内容。",
+      "inputs": "4个相同请求、4个不同键、冲突内容",
+      "expected": "相同请求仅一版本；不同请求序号唯一；冲突409。",
+      "categories": [
+        "版本幂等并发"
+      ],
+      "parameters": {},
+      "source": "@case('版本幂等并发', '并发发送相同请求；再并发发送不同请求；复用键改变内容。', '4个相同请求、4个不同键、冲突内容', '相同请求仅一版本；不同请求序号唯一；冲突409。')\ndef test_version_concurrent_idempotency(client):\n    h,b,q = library(client)\n    with ThreadPoolExecutor(max_workers=4) as pool:\n        same = list(pool.map(lambda _:version(client,h,q), range(4)))\n    assert all(r.status_code == 201 for r in same)\n    assert len({r.json()['id'] for r in same}) == 1\n    with ThreadPoolExecutor(max_workers=4) as pool:\n        different = list(pool.map(lambda i:version(client,h,q,key='key'+str(i)), range(4)))\n    assert sorted(r.json()['version_no'] for r in different) == [3,4,5,6]\n    assert version(client,h,q,title='冲突').status_code == 409\n    assert client.app.state.db.question_versions.count_documents({}) == 6\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.14423309999983758,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.861387399956584,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.041750799980945885,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_115d3941443e438bbf364ef03fb23498"
+    },
+    {
+      "id": "AUTO-003",
+      "nodeid": "tests/test_phase2_block3.py::test_version_retry_after_lost_ack",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "模拟版本写入成功但响应丢失；相同键重试；检查数量。",
+      "inputs": "insert_one完成后抛出RuntimeError",
+      "expected": "异常后恢复同一已提交版本；不重复插入。",
+      "categories": [
+        "版本失败重试"
+      ],
+      "parameters": {},
+      "source": "@case('版本失败重试', '模拟版本写入成功但响应丢失；相同键重试；检查数量。', 'insert_one完成后抛出RuntimeError', '异常后恢复同一已提交版本；不重复插入。')\ndef test_version_retry_after_lost_ack(client, monkeypatch):\n    from pymongo.synchronous.collection import Collection\n    h,b,q=library(client)\n    original=Collection.insert_one\n    def lost(self,*args,**kwargs):\n        result=original(self,*args,**kwargs)\n        if self.name=='question_versions': raise RuntimeError('lost acknowledgement')\n        return result\n    with monkeypatch.context() as m:\n        m.setattr(Collection,'insert_one',lost)\n        with pytest.raises(RuntimeError): version(client,h,q)\n    assert version(client,h,q).status_code == 201\n    assert client.app.state.db.question_versions.count_documents({}) == 2\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.15762419998645782,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.8343143999809399,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.011914199974853545,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_ffda47b20fd344ea8d2cbf72648d265f"
+    },
+    {
+      "id": "AUTO-004",
+      "nodeid": "tests/test_phase2_block3.py::test_version_invalid_parent_and_permissions",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "他人创建/恢复；不存在或其他题目版本作为父版本；尝试覆盖版本。",
+      "inputs": "其他账号、错误parent、PUT版本",
+      "expected": "404/405；历史内容不变。",
+      "categories": [
+        "版本权限"
+      ],
+      "parameters": {},
+      "source": "@case('版本权限', '他人创建/恢复；不存在或其他题目版本作为父版本；尝试覆盖版本。', '其他账号、错误parent、PUT版本', '404/405；历史内容不变。')\ndef test_version_invalid_parent_and_permissions(client):\n    h,b,q=library(client)\n    other=login(client,'other')\n    assert version(client,other,q).status_code == 404\n    assert version(client,h,q,parent='missing').status_code == 404\n    assert client.get(f'/api/bank-questions/{q[\"id\"]}/versions',headers=other).status_code == 404\n    path=f'/api/bank-questions/{q[\"id\"]}/versions/{q[\"latest_version\"][\"id\"]}'\n    assert client.put(path,headers=h,json={}).status_code == 405\n    assert client.post(path+'/restore',headers=other,json={'request_key':'r','parent_version_id':q['latest_version']['id']}).status_code == 404\n    assert client.app.state.db.question_versions.count_documents({}) == 1\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.14152120001381263,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 1.6083135000080802,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.01191499998094514,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_5056a4f44ae54d068e844d158b532935"
+    }
+  ]
+}

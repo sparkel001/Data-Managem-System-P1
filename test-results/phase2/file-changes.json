@@ -1,0 +1,108 @@
+{
+  "modified_archived_files": [
+    {
+      "path": "app/main.py",
+      "status": "modified"
+    },
+    {
+      "path": "app/questions.py",
+      "status": "modified"
+    },
+    {
+      "path": "app/static/app.js",
+      "status": "modified"
+    },
+    {
+      "path": "app/static/index.html",
+      "status": "modified"
+    },
+    {
+      "path": "tests/browser_demo.py",
+      "status": "modified"
+    },
+    {
+      "path": "docs/AI_USAGE_LOG.md",
+      "status": "modified"
+    },
+    {
+      "path": "docs/API.md",
+      "status": "modified"
+    },
+    {
+      "path": "docs/DATABASE.md",
+      "status": "modified"
+    },
+    {
+      "path": "docs/LOGIC.md",
+      "status": "modified"
+    },
+    {
+      "path": "docs/TEST_CASES.md",
+      "status": "modified"
+    },
+    {
+      "path": "docs/TEST_RESULTS.md",
+      "status": "modified"
+    },
+    {
+      "path": "README.md",
+      "status": "modified"
+    }
+  ],
+  "unchanged_archived_files": [
+    "app/__init__.py",
+    "app/auth.py",
+    "app/config.py",
+    "app/logic.py",
+    "app/responses.py",
+    "app/statistics.py",
+    "app/surveys.py",
+    "app/static/docs.html",
+    "app/static/docs.js",
+    "app/static/style.css",
+    "tests/__init__.py",
+    "tests/audit_catalog.py",
+    "tests/audit_plugin.py",
+    "tests/conftest.py",
+    "tests/test_block1.py",
+    "tests/test_block2.py",
+    "tests/test_block3.py",
+    "tests/test_block4.py",
+    "tests/test_block5.py",
+    "tests/test_block6.py",
+    "tests/test_block7.py",
+    "tests/test_block8.py",
+    "tests/test_block9.py",
+    "tests/test_course_requirements.py",
+    "docs/REPORT.md",
+    "docs/TEST_COVERAGE_AUDIT.md",
+    "requirements.txt"
+  ],
+  "new_files": [
+    "app/banks.py",
+    "app/cross_statistics.py",
+    "app/migrations.py",
+    "app/reuse.py",
+    "app/static/banks.js",
+    "tests/test_phase2_block1.py",
+    "tests/test_phase2_block2.py",
+    "tests/test_phase2_block3.py",
+    "tests/test_phase2_block4.py",
+    "tests/test_phase2_block5.py",
+    "tests/test_phase2_block6.py",
+    "tests/test_phase2_block7_browser.py",
+    "tests/test_phase2_boundaries.py",
+    "docs/AI_USAGE_PHASE2.md",
+    "docs/MANUAL_TESTS.md",
+    "docs/MIGRATION_PHASE2.md",
+    "docs/REPORT_PHASE2.md",
+    "docs/REPORT_TEMPLATE.md",
+    "docs/TEST_CASES_PHASE2.md",
+    "scripts/migrate_phase2.py",
+    "scripts/build_phase2_test_docs.py"
+  ],
+  "other_modified_files": [
+    ".gitignore"
+  ],
+  "missing_files": []
+}

@@ -1,0 +1,44 @@
+{
+  "executed_at": "2026-10-27T01:32:06.820593+08:00",
+  "exitstatus": 0,
+  "cases": [
+    {
+      "id": "AUTO-001",
+      "nodeid": "tests/test_block9.py::test_documentation_present",
+      "origin": "已有",
+      "type": "自动化单元/文件检查",
+      "categories": [
+        "其他"
+      ],
+      "steps": "检查7份文档存在且长度大于100；检查.env.example。",
+      "inputs": "DATABASE/API/LOGIC/MANUAL_TESTS/REPORT_TEMPLATE/AI_USAGE_LOG/TEST_RESULTS。",
+      "expected": "文档非空且环境示例含MONGODB_URI；仅检查存在性，不证明文档业务覆盖。",
+      "preconditions": "纯函数/本地文件自动测试；无需MongoDB业务数据。",
+      "parameters": {},
+      "source": "def test_documentation_present():\n    root=Path(__file__).parents[1]\n    for name in (\"DATABASE.md\",\"API.md\",\"LOGIC.md\",\"MANUAL_TESTS.md\",\"REPORT_TEMPLATE.md\",\"AI_USAGE_LOG.md\",\"TEST_RESULTS.md\"):\n        assert len((root/\"docs\"/name).read_text(encoding=\"utf-8\")) > 100\n    assert \"MONGODB_URI\" in (root/\".env.example\").read_text()\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.0006756000220775604,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.03201500000432134,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.0002914000069722533,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": null
+    }
+  ]
+}

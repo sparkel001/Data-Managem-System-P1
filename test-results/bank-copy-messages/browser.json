@@ -1,0 +1,120 @@
+{
+  "executed_at": "2026-10-27T00:12:15.777238+08:00",
+  "exitstatus": 1,
+  "cases": [
+    {
+      "id": "AUTO-001",
+      "nodeid": "tests/test_bank_copy_browser.py::test_bank_copy_and_readable_errors",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "浏览器模拟非JSON/网络错误；创建空题库，从自己的问卷复制题目，重复保存，加入另一题库。",
+      "inputs": "数字题年龄；他人私有问卷；纯文本/HTML/无效JSON/英文错误和断网响应",
+      "expected": "提示全中文且无状态码或原始异常；空状态有引导；不显示私有问卷；复制保留内容，重复不新增；候选过滤正确。",
+      "categories": [
+        "题库与提示浏览器验证"
+      ],
+      "parameters": {},
+      "source": "@case('题库与提示浏览器验证', '浏览器模拟非JSON/网络错误；创建空题库，从自己的问卷复制题目，重复保存，加入另一题库。',\n      '数字题年龄；他人私有问卷；纯文本/HTML/无效JSON/英文错误和断网响应',\n      '提示全中文且无状态码或原始异常；空状态有引导；不显示私有问卷；复制保留内容，重复不新增；候选过滤正确。')\ndef test_bank_copy_and_readable_errors(client):\n    pw=pytest.importorskip('playwright.sync_api')\n    h=login(client);sid,qs=survey_with_questions(client,h,[question_input('number',title='问卷中的年龄',min_value=0,max_value=120)])\n    other=login(client,'other');survey_with_questions(client,other,[question_input('text',title='他人的私有题目')])\n    token=h['Authorization'].removeprefix('Bearer ')\n    sock=socket.socket();sock.bind(('127.0.0.1',0));origin=f'http://127.0.0.1:{sock.getsockname()[1]}'\n    server=uvicorn.Server(uvicorn.Config(create_app(Settings(mongo_uri='mongodb://127.0.0.1:27017',database=client.app.state.db.name)),log_level='error'))\n    thread=threading.Thread(target=server.run,kwargs={'sockets':[sock]},daemon=True);thread.start()\n    try:\n        for _ in range(100):\n            if server.started: break\n            time.sleep(.1)\n        assert server.started\n        with pw.sync_playwright() as p:\n            browser=p.chromium.launch(channel='msedge',headless=True);page=browser.new_page()\n            page.add_init_script('sessionStorage.setItem(\"survey_token\",'+json.dumps(token)+')')\n            errors=[];page.on('pageerror',lambda e:errors.append(str(e)))\n            page.goto(origin);pw.expect(page.locator('#banks')).to_be_visible()\n            for status,ctype,body in [(500,'text/plain','Internal Server Error'),(503,'text/html','<html>Unavailable</html>'),\n                (500,'application/json','Invalid JSON'),(422,'application/json','{\"detail\":[{\"msg\":\"Field required\",\"loc\":[\"body\",\"title\"]}]}'),\n                (400,'application/json','{\"detail\":\"Traceback internal_error\"}')]:\n                page.route('**/api/question-banks',lambda route,request,status=status,ctype=ctype,body=body:route.fulfill(status=status,content_type=ctype,body=body))\n                page.locator('#notice').evaluate('(el)=>el.textContent=\"\"')\n                page.locator('#banks').click();pw.expect(page.locator('#notice')).not_to_be_empty()\n                message=page.locator('#notice').inner_text()\n                assert re.search('[\\u3400-\\u9fff]',message) and not re.search('[A-Za-z_{}\\[\\]0-9]',message)\n                page.unroute('**/api/question-banks')\n            page.route('**/api/question-banks',lambda route:route.abort())\n            page.locator('#banks').click();pw.expect(page.locator('#notice')).to_contain_text('无法连接')\n            page.unroute('**/api/question-banks')\n            page.locator('#banks').click();page.locator('#newBank').click();page.locator('#bankName').fill('第一个库')\n            page.get_by_role('button',name='保存题库').click();page.locator('[data-bank]').click()\n            pw.expect(page.locator('#noCandidates')).to_contain_text('从我的问卷选择题目')\n            assert page.locator('#existingFamily').count()==0\n            page.locator('#copyFromSurvey').click()\n            assert page.locator('#sourceSurvey option').count()==2\n            page.locator('#sourceSurvey').select_option(sid)\n            pw.expect(page.locator('#sourceQuestions')).to_contain_text('数字范围：0～120')\n            page.locator('[data-copy-question]').click()\n            pw.expect(page.locator('#notice')).to_contain_text('原问卷保持不变')\n            pw.expect(page.locator('[data-family]')).to_have_count(1)\n            page.locator('#copyFromSurvey').click();page.locator('#sourceSurvey').select_option(sid);page.locator('[data-copy-question]').click()\n            pw.expect(page.locator('#notice')).to_contain_text('无需重复保存')\n            page.locator('#back').click();page.locator('#newBank').click();page.locator('#bankName').fill('第二个库')\n            page.get_by_role('button',name='保存题库').click();page.locator('[data-bank]').last.click()\n            pw.expect(page.locator('#existingFamily option')).to_have_count(1)\n            page.get_by_role('button',name='加入当前题库',exact=True).click()\n            pw.expect(page.locator('#notice')).to_contain_text('已加入')\n            assert page.locator('#existingFamily').count()==0\n            assert client.app.state.db.bank_questions.count_documents({})==1\n            assert client.app.state.db.question_versions.count_documents({})==1\n            assert client.app.state.db.surveys.find_one({'_id':sid})['questions']==qs\n            assert errors==[],errors\n            browser.close()\n    finally:\n        server.should_exit=True;thread.join(timeout=10);sock.close()\n        assert not thread.is_alive()\n",
+      "status": "failed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.14450689998921007,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "failed",
+          "duration": 4.520064600044861,
+          "failure": "client = <starlette.testclient.TestClient object at 0x000002078585EF90>\n\n    @case('题库与提示浏览器验证', '浏览器模拟非JSON/网络错误；创建空题库，从自己的问卷复制题目，重复保存，加入另一题库。',\n          '数字题年龄；他人私有问卷；纯文本/HTML/无效JSON/英文错误和断网响应',\n          '提示全中文且无状态码或原始异常；空状态有引导；不显示私有问卷；复制保留内容，重复不新增；候选过滤正确。')\n    def test_bank_copy_and_readable_errors(client):\n        pw=pytest.importorskip('playwright.sync_api')\n        h=login(client);sid,qs=survey_with_questions(client,h,[question_input('number',title='问卷中的年龄',min_value=0,max_value=120)])\n        other=login(client,'other');survey_with_questions(client,other,[question_input('text',title='他人的私有题目')])\n        token=h['Authorization'].removeprefix('Bearer ')\n        sock=socket.socket();sock.bind(('127.0.0.1',0));origin=f'http://127.0.0.1:{sock.getsockname()[1]}'\n        server=uvicorn.Server(uvicorn.Config(create_app(Settings(mongo_uri='mongodb://127.0.0.1:27017',database=client.app.state.db.name)),log_level='error'))\n        thread=threading.Thread(target=server.run,kwargs={'sockets':[sock]},daemon=True);thread.start()\n        try:\n            for _ in range(100):\n                if server.started: break\n                time.sleep(.1)\n            assert server.started\n            with pw.sync_playwright() as p:\n                browser=p.chromium.launch(channel='msedge',headless=True);page=browser.new_page()\n                page.add_init_script('sessionStorage.setItem(\"survey_token\",'+json.dumps(token)+')')\n                errors=[];page.on('pageerror',lambda e:errors.append(str(e)))\n                page.goto(origin);pw.expect(page.locator('#banks')).to_be_visible()\n                for status,ctype,body in [(500,'text/plain','Internal Server Error'),(503,'text/html','<html>Unavailable</html>'),\n                    (500,'application/json','Invalid JSON'),(422,'application/json','{\"detail\":[{\"msg\":\"Field required\",\"loc\":[\"body\",\"title\"]}]}'),\n                    (400,'application/json','{\"detail\":\"Traceback internal_error\"}')]:\n                    page.route('**/api/question-banks',lambda route,request,status=status,ctype=ctype,body=body:route.fulfill(status=status,content_type=ctype,body=body))\n                    page.locator('#notice').evaluate('(el)=>el.textContent=\"\"')\n                    page.locator('#banks').click();pw.expect(page.locator('#notice')).not_to_be_empty()\n                    message=page.locator('#notice').inner_text()\n                    assert re.search('[\\u3400-\\u9fff]',message) and not re.search('[A-Za-z_{}\\[\\]0-9]',message)\n                    page.unroute('**/api/question-banks')\n                page.route('**/api/question-banks',lambda route:route.abort())\n                page.locator('#banks').click();pw.expect(page.locator('#notice')).to_contain_text('无法连接')\n                page.unroute('**/api/question-banks')\n                page.locator('#banks').click();page.locator('#newBank').click();page.locator('#bankName').fill('第一个库')\n                page.get_by_role('button',name='保存题库').click();page.locator('[data-bank]').click()\n                pw.expect(page.locator('#noCandidates')).to_contain_text('从我的问卷选择题目')\n                assert page.locator('#existingFamily').count()==0\n                page.locator('#copyFromSurvey').click()\n>               assert page.locator('#sourceSurvey option').count()==2\nE               AssertionError: assert 0 == 2\nE                +  where 0 = count()\nE                +    where count = <Locator frame=<Frame name= url='http://127.0.0.1:65334/'> selector='#sourceSurvey option'>.count\nE                +      where <Locator frame=<Frame name= url='http://127.0.0.1:65334/'> selector='#sourceSurvey option'> = locator('#sourceSurvey option')\nE                +        where locator = <Page url='http://127.0.0.1:65334/'>.locator\n\ntests\\test_bank_copy_browser.py:52: AssertionError"
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.03840459999628365,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_6aca8f87555642cb9c17b45a2035631d"
+    },
+    {
+      "id": "AUTO-002",
+      "nodeid": "tests/test_auth_browser.py::test_separate_auth_views",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "登录页进入注册页并返回；验证必填、格式、密码长度、一致性和重复账号；注册后登录、退出；分享链接上注册登录。",
+      "inputs": "ui_user、password123；空字段、短密码、不一致密码、重复用户名",
+      "expected": "独立表单；错误提示明确且无无效注册写入；注册成功返回登录且不自动登录；登录进入首页或原问卷；退出会话失效。",
+      "categories": [
+        "认证浏览器自动化"
+      ],
+      "parameters": {},
+      "source": "@case('认证浏览器自动化', '登录页进入注册页并返回；验证必填、格式、密码长度、一致性和重复账号；注册后登录、退出；分享链接上注册登录。',\n      'ui_user、password123；空字段、短密码、不一致密码、重复用户名',\n      '独立表单；错误提示明确且无无效注册写入；注册成功返回登录且不自动登录；登录进入首页或原问卷；退出会话失效。')\ndef test_separate_auth_views(client):\n    pw = pytest.importorskip('playwright.sync_api')\n    _, sid, _ = setup_survey(client)\n    sock = socket.socket(); sock.bind(('127.0.0.1', 0))\n    origin = f'http://127.0.0.1:{sock.getsockname()[1]}'\n    app = create_app(Settings(mongo_uri='mongodb://127.0.0.1:27017', database=client.app.state.db.name))\n    server = uvicorn.Server(uvicorn.Config(app, log_level='error'))\n    thread = threading.Thread(target=server.run, kwargs={'sockets': [sock]}, daemon=True)\n    thread.start()\n    try:\n        for _ in range(100):\n            if server.started: break\n            time.sleep(.1)\n        assert server.started\n        with pw.sync_playwright() as p:\n            browser = p.chromium.launch(channel='msedge', headless=True)\n            page = browser.new_page()\n            errors = []; requests = []\n            page.on('pageerror', lambda e: errors.append(str(e)))\n            page.on('request', lambda r: requests.append(r.url) if r.url.endswith('/api/auth/register') else None)\n            page.goto(origin)\n            pw.expect(page.locator('#auth')).to_be_visible()\n            pw.expect(page.locator('#confirmPassword')).to_have_count(0)\n            page.locator('#register').click()\n            pw.expect(page.locator('#auth')).to_have_count(0)\n            pw.expect(page.locator('#registration')).to_be_visible()\n            page.locator('#backToLogin').click()\n            pw.expect(page.locator('#auth')).to_be_visible()\n            page.locator('#register').click()\n            page.locator('#submitRegistration').click()\n            pw.expect(page.locator('#notice')).to_contain_text('请填写')\n            page.locator('#username').fill('!bad')\n            page.locator('#password').fill('password123')\n            page.locator('#confirmPassword').fill('password123')\n            page.locator('#submitRegistration').click()\n            pw.expect(page.locator('#notice')).to_contain_text('用户名须')\n            page.locator('#username').fill('ui_user')\n            page.locator('#password').fill('short')\n            page.locator('#submitRegistration').click()\n            pw.expect(page.locator('#notice')).to_contain_text('密码长度')\n            page.locator('#password').fill('x'*17)\n            page.locator('#confirmPassword').fill('x'*17)\n            page.locator('#submitRegistration').click()\n            pw.expect(page.locator('#notice')).to_contain_text('8～16个字符')\n            page.locator('#password').fill('password123')\n            page.locator('#confirmPassword').fill('different')\n            page.locator('#submitRegistration').click()\n            pw.expect(page.locator('#notice')).to_contain_text('不一致')\n            assert requests == []\n            page.locator('#confirmPassword').fill('password123')\n            page.locator('#submitRegistration').click()\n            pw.expect(page.locator('#notice')).to_contain_text('注册成功')\n            pw.expect(page.locator('#auth')).to_be_visible()\n            pw.expect(page.locator('#password')).to_have_value('')\n            assert page.evaluate(\"sessionStorage.getItem('survey_token')\") is None\n            page.locator('#register').click()\n            page.locator('#username').fill('UI_USER')\n            page.locator('#password').fill('password123')\n            page.locator('#confirmPassword').fill('password123')\n            page.locator('#submitRegistration').click()\n            pw.expect(page.locator('#notice')).to_contain_text('用户名已存在')\n            assert client.app.state.db.users.count_documents({'username': 'ui_user'}) == 1\n            page.locator('#backToLogin').click()\n            page.locator('#username').fill('ui_user'); page.locator('#password').fill('incorrect')\n            page.get_by_role('button', name='登录', exact=True).click()\n            pw.expect(page.locator('#notice')).to_contain_text('用户名或密码错误')\n            page.locator('#password').fill('password123')\n            page.get_by_role('button', name='登录', exact=True).click()\n            pw.expect(page.locator('#new')).to_be_visible()\n            old_token = page.evaluate(\"sessionStorage.getItem('survey_token')\")\n            page.locator('#logout').click()\n            pw.expect(page.locator('#auth')).to_be_visible()\n            assert page.evaluate(\"sessionStorage.getItem('survey_token')\") is None\n            assert client.get('/api/auth/me', headers={'Authorization':'Bearer '+old_token}).status_code == 401\n            page.goto(origin+'/survey/'+sid)\n            page.locator('#register').click()\n            page.locator('#username').fill('share_reader'); page.locator('#password').fill('password123')\n            page.locator('#confirmPassword').fill('password123'); page.locator('#submitRegistration').click()\n            pw.expect(page.locator('#notice')).to_contain_text('注册成功')\n            assert page.url == origin+'/survey/'+sid\n            page.locator('#password').fill('password123')\n            page.get_by_role('button', name='登录', exact=True).click()\n            pw.expect(page.locator('#answerForm')).to_be_visible()\n            from app.auth import digest, now\n            import secrets\n            salt = secrets.token_hex(16)\n            client.app.state.db.users.insert_one({'_id':'browser_legacy','username':'browser_legacy',\n                'salt':salt,'password_hash':digest('L'*128,salt),'created_at':now()})\n            page.locator('#logout').click()\n            pw.expect(page.locator('#auth')).to_be_visible()\n            page.locator('#username').fill('browser_legacy')\n            page.locator('#password').fill('L'*128)\n            page.get_by_role('button',name='登录',exact=True).click()\n            pw.expect(page.locator('#answerForm')).to_be_visible()\n            assert errors == [], errors\n            browser.close()\n    finally:\n        server.should_exit = True; thread.join(timeout=10); sock.close()\n        assert not thread.is_alive()\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.17669410002417862,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 9.7313844000455,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.0151655999943614,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_dc1d1f2d18d846d6982e313f7e27e576"
+    },
+    {
+      "id": "AUTO-003",
+      "nodeid": "tests/test_phase2_block7_browser.py::test_library_browser_flow",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "Edge中创建题库/题目、分支/恢复、分享/撤销；选题加入问卷、换版、发布填写、查使用及统计。",
+      "inputs": "数字题年龄、答案16，reader共享账号，390px视窗",
+      "expected": "页面流程完成；三版本；快照换版成功；统计16；使用清单可见；无JS异常和横向溢出。",
+      "categories": [
+        "第二阶段浏览器自动化"
+      ],
+      "parameters": {},
+      "source": "@case('第二阶段浏览器自动化', 'Edge中创建题库/题目、分支/恢复、分享/撤销；选题加入问卷、换版、发布填写、查使用及统计。', '数字题年龄、答案16，reader共享账号，390px视窗', '页面流程完成；三版本；快照换版成功；统计16；使用清单可见；无JS异常和横向溢出。')\ndef test_library_browser_flow(client):\n    playwright = pytest.importorskip('playwright.sync_api')\n    login(client,'reader')\n    sock=socket.socket();sock.bind(('127.0.0.1',0));port=sock.getsockname()[1]\n    settings=Settings(mongo_uri='mongodb://127.0.0.1:27017',database=client.app.state.db.name)\n    server=uvicorn.Server(uvicorn.Config(create_app(settings),log_level='error'))\n    thread=threading.Thread(target=server.run,kwargs={'sockets':[sock]},daemon=True);thread.start()\n    try:\n        for _ in range(100):\n            if server.started: break\n            time.sleep(.1)\n        assert server.started\n        with playwright.sync_playwright() as p:\n            browser=p.chromium.launch(channel='msedge',headless=True)\n            page=browser.new_page(viewport={'width':1280,'height':900})\n            errors=[];page.on('pageerror',lambda e:errors.append(str(e)))\n            page.goto(f'http://127.0.0.1:{port}')\n            page.locator('#register').click()\n            page.locator('#username').fill('browser_phase2');page.locator('#password').fill('password123')\n            page.locator('#confirmPassword').fill('password123');page.locator('#submitRegistration').click();playwright.expect(page.locator('#notice')).to_contain_text('注册成功')\n            page.locator('#password').fill('password123')\n            page.get_by_role('button',name='登录',exact=True).click()\n            page.locator('#banks').click();page.locator('#newBank').click()\n            page.locator('#bankName').fill('课堂题库');page.get_by_role('button',name='保存题库').click()\n            page.locator('[data-bank]').click();page.locator('#newBankQuestion').click()\n            page.locator('#qt').fill('年龄');page.locator('#kind').select_option('number')\n            page.locator('#integer').check();page.get_by_role('button',name='保存题目').click()\n            page.locator('[data-family]').click();page.locator('[data-branch]').first.click()\n            page.locator('#qt').fill('年龄第二版');page.get_by_role('button',name='保存题目').click()\n            playwright.expect(page.locator('[data-version-row]')).to_have_count(2)\n            page.locator('[data-restore]').first.click()\n            playwright.expect(page.locator('[data-version-row]')).to_have_count(3)\n            page.locator('#shareUsername').fill('reader');page.get_by_role('button',name='分享题目',exact=True).click()\n            playwright.expect(page.locator('[data-revoke]')).to_have_count(1)\n            page.locator('[data-revoke]').click();playwright.expect(page.locator('[data-revoke]')).to_have_count(0)\n            page.locator('#back').click();page.locator('#back').click()\n            page.locator('#new').click();page.locator('#title').fill('题库复用演示')\n            page.locator('#anonymous').check();page.get_by_role('button',name='保存',exact=True).click()\n            page.locator('#importLibrary').click();page.locator('[data-family]').click();page.locator('[data-pick]').first.click()\n            page.locator('[data-switch]').click();page.locator('[data-family]').click();page.locator('[data-pick]').last.click()\n            page.locator('#publish').click();playwright.expect(page.locator('#notice')).to_contain_text('已发布')\n            share=page.locator('a[href^=\"/survey/\"]').get_attribute('href')\n            page.goto(f'http://127.0.0.1:{port}'+share);page.locator('#answer').fill('16')\n            page.get_by_role('button',name='下一步').click();page.locator('#submit').click()\n            playwright.expect(page.get_by_role('heading',name='提交成功')).to_be_visible()\n            page.goto(f'http://127.0.0.1:{port}');page.locator('[data-open]').click();page.locator('[data-cross]').click()\n            playwright.expect(page.locator('#app')).to_contain_text('平均值：16')\n            page.locator('#versionFilter').select_option(index=3)\n            playwright.expect(page.locator('#app')).to_contain_text('平均值：16')\n            page.screenshot(path='test-results/phase2/browser-library-stats.png',full_page=True)\n            page.set_viewport_size({'width':390,'height':844})\n            assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth')\n            page.locator('#back').click();page.locator('#banks').click();page.locator('[data-family]').first.click();page.locator('#usages').click()\n            playwright.expect(page.locator('#app')).to_contain_text('题库复用演示')\n            assert errors==[],errors\n            browser.close()\n    finally:\n        server.should_exit=True;thread.join(timeout=10);sock.close()\n        assert not thread.is_alive()\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.19866340002045035,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 7.681294200010598,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.0168588999658823,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_847f6ba51f2542c09badd23ead7c755d"
+    }
+  ]
+}

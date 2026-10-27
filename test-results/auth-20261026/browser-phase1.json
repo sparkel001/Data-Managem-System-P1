@@ -1,0 +1,7 @@
+{
+  "command": ".venv/Scripts/python.exe -m tests.browser_demo",
+  "passed": 1,
+  "failed": 0,
+  "type": "automated Edge browser",
+  "actual_stdout": "Browser scenario: 1 passed, 0 failed (register/create/questions/rules/publish/validate/jump/submit/statistics/mobile width)"
+}

@@ -1,0 +1,191 @@
+{
+  "source_evidence": "test-results/bank-copy-messages/full.json",
+  "target_evidence": "test-results/submission-20261027/full.json",
+  "source_document_sha256": "65247f8d92bc259c08e5b18febebd875609fcaf46473e0b0828667839cea88e0",
+  "comparisons": [
+    {
+      "nodeid": "tests/test_bank_copy_browser.py::test_bank_copy_and_readable_errors",
+      "target_case": "P2-AUTO-002",
+      "equal_fields": [
+        "preconditions",
+        "steps",
+        "inputs",
+        "expected",
+        "parameters",
+        "status",
+        "phase_results"
+      ],
+      "rendered_content_checked": true
+    },
+    {
+      "nodeid": "tests/test_bank_copy_messages.py::test_copy_snapshot_preserves_data[single-a]",
+      "target_case": "P2-AUTO-003",
+      "equal_fields": [
+        "preconditions",
+        "steps",
+        "inputs",
+        "expected",
+        "parameters",
+        "status",
+        "phase_results"
+      ],
+      "rendered_content_checked": true
+    },
+    {
+      "nodeid": "tests/test_bank_copy_messages.py::test_copy_snapshot_preserves_data[multiple-value1]",
+      "target_case": "P2-AUTO-004",
+      "equal_fields": [
+        "preconditions",
+        "steps",
+        "inputs",
+        "expected",
+        "parameters",
+        "status",
+        "phase_results"
+      ],
+      "rendered_content_checked": true
+    },
+    {
+      "nodeid": "tests/test_bank_copy_messages.py::test_copy_snapshot_preserves_data[text-\\u8bfe\\u7a0b\\u8bc4\\u4ef7]",
+      "target_case": "P2-AUTO-005",
+      "equal_fields": [
+        "preconditions",
+        "steps",
+        "inputs",
+        "expected",
+        "parameters",
+        "status",
+        "phase_results"
+      ],
+      "rendered_content_checked": true
+    },
+    {
+      "nodeid": "tests/test_bank_copy_messages.py::test_copy_snapshot_preserves_data[number-18]",
+      "target_case": "P2-AUTO-006",
+      "equal_fields": [
+        "preconditions",
+        "steps",
+        "inputs",
+        "expected",
+        "parameters",
+        "status",
+        "phase_results"
+      ],
+      "rendered_content_checked": true
+    },
+    {
+      "nodeid": "tests/test_bank_copy_messages.py::test_candidates_membership_and_permissions",
+      "target_case": "P2-AUTO-007",
+      "equal_fields": [
+        "preconditions",
+        "steps",
+        "inputs",
+        "expected",
+        "parameters",
+        "status",
+        "phase_results"
+      ],
+      "rendered_content_checked": true
+    },
+    {
+      "nodeid": "tests/test_bank_copy_messages.py::test_copy_source_and_shared_ownership",
+      "target_case": "P2-AUTO-008",
+      "equal_fields": [
+        "preconditions",
+        "steps",
+        "inputs",
+        "expected",
+        "parameters",
+        "status",
+        "phase_results"
+      ],
+      "rendered_content_checked": true
+    },
+    {
+      "nodeid": "tests/test_bank_copy_messages.py::test_copy_concurrent_and_changed_snapshot",
+      "target_case": "P2-AUTO-009",
+      "equal_fields": [
+        "preconditions",
+        "steps",
+        "inputs",
+        "expected",
+        "parameters",
+        "status",
+        "phase_results"
+      ],
+      "rendered_content_checked": true
+    },
+    {
+      "nodeid": "tests/test_bank_copy_messages.py::test_number_messages[-1-\\u8f93\\u5165\\u7684\\u6570\\u5b57\\u4e0d\\u80fd\\u4f4e\\u4e8e\\u6700\\u5c0f\\u503c\\u3002]",
+      "target_case": "P2-AUTO-010",
+      "equal_fields": [
+        "preconditions",
+        "steps",
+        "inputs",
+        "expected",
+        "parameters",
+        "status",
+        "phase_results"
+      ],
+      "rendered_content_checked": true
+    },
+    {
+      "nodeid": "tests/test_bank_copy_messages.py::test_number_messages[121-\\u8f93\\u5165\\u7684\\u6570\\u5b57\\u4e0d\\u80fd\\u8d85\\u8fc7\\u6700\\u5927\\u503c\\u3002]",
+      "target_case": "P2-AUTO-011",
+      "equal_fields": [
+        "preconditions",
+        "steps",
+        "inputs",
+        "expected",
+        "parameters",
+        "status",
+        "phase_results"
+      ],
+      "rendered_content_checked": true
+    },
+    {
+      "nodeid": "tests/test_bank_copy_messages.py::test_validation_and_database_messages",
+      "target_case": "P2-AUTO-012",
+      "equal_fields": [
+        "preconditions",
+        "steps",
+        "inputs",
+        "expected",
+        "parameters",
+        "status",
+        "phase_results"
+      ],
+      "rendered_content_checked": true
+    },
+    {
+      "nodeid": "tests/test_bank_copy_messages.py::test_copy_closed_survey_without_rules",
+      "target_case": "P2-AUTO-013",
+      "equal_fields": [
+        "preconditions",
+        "steps",
+        "inputs",
+        "expected",
+        "parameters",
+        "status",
+        "phase_results"
+      ],
+      "rendered_content_checked": true
+    },
+    {
+      "nodeid": "tests/test_bank_copy_messages.py::test_unexpected_error_message",
+      "target_case": "P2-AUTO-014",
+      "equal_fields": [
+        "preconditions",
+        "steps",
+        "inputs",
+        "expected",
+        "parameters",
+        "status",
+        "phase_results"
+      ],
+      "rendered_content_checked": true
+    }
+  ],
+  "passed": 13,
+  "failed": 0
+}

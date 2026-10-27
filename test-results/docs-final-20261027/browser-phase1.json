@@ -1,0 +1,9 @@
+{
+  "command": ".venv/Scripts/python.exe -m tests.browser_demo",
+  "mongo_uri": "mongodb://127.0.0.1:27019",
+  "date": "2026-10-27",
+  "exit_code": 0,
+  "passed": 1,
+  "failed": 0,
+  "type": "自动化浏览器流程，不是人工测试"
+}

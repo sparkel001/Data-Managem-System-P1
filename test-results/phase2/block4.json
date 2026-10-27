@@ -1,0 +1,1233 @@
+{
+  "executed_at": "2026-10-22T13:55:33.941320+08:00",
+  "exitstatus": 0,
+  "cases": [
+    {
+      "id": "AUTO-001",
+      "nodeid": "tests/test_phase2_block4.py::test_snapshots_and_published_freeze",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "同版本加入两次；创建新版本；显式换版；发布、提交后尝试换版。",
+      "inputs": "数字题V1、V2；答案键为实例ID",
+      "expected": "实例ID不同；原快照不自动更新；换版保持ID；发布后拒绝；答卷不变。",
+      "categories": [
+        "复用快照"
+      ],
+      "parameters": {},
+      "source": "@case('复用快照', '同版本加入两次；创建新版本；显式换版；发布、提交后尝试换版。', '数字题V1、V2；答案键为实例ID', '实例ID不同；原快照不自动更新；换版保持ID；发布后拒绝；答卷不变。')\ndef test_snapshots_and_published_freeze(client):\n    h,b,q=library(client)\n    sid,a=import_into(client,h,q)\n    _,bq=import_into(client,h,q,sid)\n    assert len({a['id'],bq['id'],q['id'],q['latest_version']['id']}) == 4\n    v=version(client,h,q).json()\n    base=f'/api/surveys/{sid}'\n    assert client.get(base,headers=h).json()['questions'][0] == a\n    path=base+f'/questions/{a[\"id\"]}/version'\n    body={'question_id':q['id'],'version_id':v['id']}\n    changed=client.put(path,headers=h,json=body).json()['questions'][0]\n    assert changed['id']==a['id'] and changed['source']['version_id']==v['id']\n    assert client.put(base+f'/questions/{a[\"id\"]}',headers=h,json=v['content']).status_code == 409\n    assert client.post(base+'/publish',headers=h).status_code == 200\n    assert client.post(f'/api/fill/{sid}/submit',headers=h,json={'answers':{a['id']:10,bq['id']:20}}).status_code == 201\n    d=client.app.state.db\n    before=d.surveys.find_one({'_id':sid}); response=d.responses.find_one()\n    assert client.put(path,headers=h,json=body).status_code == 409\n    version(client,h,q,title='第三版',key='third')\n    assert d.surveys.find_one({'_id':sid})==before and d.responses.find_one()==response\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.1734569999971427,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.952167899988126,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.030216599989216775,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_95178d9464b449858a3a453f2e59fdff"
+    },
+    {
+      "id": "AUTO-002",
+      "nodeid": "tests/test_phase2_block4.py::test_replacement_atomic_rule_rejection[type]",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "配置规则后换成不兼容版本，或模拟损坏目标；比较完整问卷。",
+      "inputs": "数字gt规则改文本；单选移除条件选项；无效跳转目标",
+      "expected": "422且问卷快照、规则、revision完全不变。",
+      "categories": [
+        "换版规则完整性"
+      ],
+      "parameters": {
+        "scenario": "type"
+      },
+      "source": "@case('换版规则完整性', '配置规则后换成不兼容版本，或模拟损坏目标；比较完整问卷。', '数字gt规则改文本；单选移除条件选项；无效跳转目标', '422且问卷快照、规则、revision完全不变。')\n@pytest.mark.parametrize('scenario',['type','option','target'])\ndef test_replacement_atomic_rule_rejection(client,scenario):\n    h,b,q=library(client,'single' if scenario=='option' else 'number')\n    sid,a=import_into(client,h,q)\n    base=f'/api/surveys/{sid}'\n    rule={'op':'eq' if scenario=='option' else 'gt','value':'a' if scenario=='option' else 0,'target':'END'}\n    assert client.put(base+f'/questions/{a[\"id\"]}/rules',headers=h,json={'rules':[rule]}).status_code==200\n    changes={'type':'text'} if scenario=='type' else {'options':[{'id':'b','label':'B'},{'id':'c','label':'C'}]} if scenario=='option' else {}\n    v=version(client,h,q,**changes).json()\n    d=client.app.state.db\n    if scenario=='target':\n        d.surveys.update_one({'_id':sid},{'$set':{'questions.0.rules.0.target':'missing'}})\n    before=d.surveys.find_one({'_id':sid})\n    r=client.put(base+f'/questions/{a[\"id\"]}/version',headers=h,json={'question_id':q['id'],'version_id':v['id']})\n    assert r.status_code==422,r.text\n    assert d.surveys.find_one({'_id':sid})==before\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.18033719999948516,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.9218505999888293,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.02511170000070706,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_e53cec932db446fc82a900c1847b8e3a"
+    },
+    {
+      "id": "AUTO-003",
+      "nodeid": "tests/test_phase2_block4.py::test_replacement_atomic_rule_rejection[option]",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "配置规则后换成不兼容版本，或模拟损坏目标；比较完整问卷。",
+      "inputs": "数字gt规则改文本；单选移除条件选项；无效跳转目标",
+      "expected": "422且问卷快照、规则、revision完全不变。",
+      "categories": [
+        "换版规则完整性"
+      ],
+      "parameters": {
+        "scenario": "option"
+      },
+      "source": "@case('换版规则完整性', '配置规则后换成不兼容版本，或模拟损坏目标；比较完整问卷。', '数字gt规则改文本；单选移除条件选项；无效跳转目标', '422且问卷快照、规则、revision完全不变。')\n@pytest.mark.parametrize('scenario',['type','option','target'])\ndef test_replacement_atomic_rule_rejection(client,scenario):\n    h,b,q=library(client,'single' if scenario=='option' else 'number')\n    sid,a=import_into(client,h,q)\n    base=f'/api/surveys/{sid}'\n    rule={'op':'eq' if scenario=='option' else 'gt','value':'a' if scenario=='option' else 0,'target':'END'}\n    assert client.put(base+f'/questions/{a[\"id\"]}/rules',headers=h,json={'rules':[rule]}).status_code==200\n    changes={'type':'text'} if scenario=='type' else {'options':[{'id':'b','label':'B'},{'id':'c','label':'C'}]} if scenario=='option' else {}\n    v=version(client,h,q,**changes).json()\n    d=client.app.state.db\n    if scenario=='target':\n        d.surveys.update_one({'_id':sid},{'$set':{'questions.0.rules.0.target':'missing'}})\n    before=d.surveys.find_one({'_id':sid})\n    r=client.put(base+f'/questions/{a[\"id\"]}/version',headers=h,json={'question_id':q['id'],'version_id':v['id']})\n    assert r.status_code==422,r.text\n    assert d.surveys.find_one({'_id':sid})==before\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.16144709999207407,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.8528845999971963,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.013646299950778484,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_fcdd2dd314664e368d413d12780c62c6"
+    },
+    {
+      "id": "AUTO-004",
+      "nodeid": "tests/test_phase2_block4.py::test_replacement_atomic_rule_rejection[target]",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "配置规则后换成不兼容版本，或模拟损坏目标；比较完整问卷。",
+      "inputs": "数字gt规则改文本；单选移除条件选项；无效跳转目标",
+      "expected": "422且问卷快照、规则、revision完全不变。",
+      "categories": [
+        "换版规则完整性"
+      ],
+      "parameters": {
+        "scenario": "target"
+      },
+      "source": "@case('换版规则完整性', '配置规则后换成不兼容版本，或模拟损坏目标；比较完整问卷。', '数字gt规则改文本；单选移除条件选项；无效跳转目标', '422且问卷快照、规则、revision完全不变。')\n@pytest.mark.parametrize('scenario',['type','option','target'])\ndef test_replacement_atomic_rule_rejection(client,scenario):\n    h,b,q=library(client,'single' if scenario=='option' else 'number')\n    sid,a=import_into(client,h,q)\n    base=f'/api/surveys/{sid}'\n    rule={'op':'eq' if scenario=='option' else 'gt','value':'a' if scenario=='option' else 0,'target':'END'}\n    assert client.put(base+f'/questions/{a[\"id\"]}/rules',headers=h,json={'rules':[rule]}).status_code==200\n    changes={'type':'text'} if scenario=='type' else {'options':[{'id':'b','label':'B'},{'id':'c','label':'C'}]} if scenario=='option' else {}\n    v=version(client,h,q,**changes).json()\n    d=client.app.state.db\n    if scenario=='target':\n        d.surveys.update_one({'_id':sid},{'$set':{'questions.0.rules.0.target':'missing'}})\n    before=d.surveys.find_one({'_id':sid})\n    r=client.put(base+f'/questions/{a[\"id\"]}/version',headers=h,json={'question_id':q['id'],'version_id':v['id']})\n    assert r.status_code==422,r.text\n    assert d.surveys.find_one({'_id':sid})==before\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.1562613999703899,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.87460199999623,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.036987499974202365,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_eb8f28497bd442d8954fcf83ce78435b"
+    },
+    {
+      "id": "AUTO-005",
+      "nodeid": "tests/test_block4.py::test_add_edit",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "categories": [
+        "添加题目"
+      ],
+      "steps": "建草稿；添加文本题；改为数字题并比较ID；添加无选项单选。",
+      "inputs": "姓名/text→年龄/number/integer=true；single无options。",
+      "expected": "添加201；编辑保持原题ID；无选项单选422。此用例未独立断言编辑请求状态码。",
+      "preconditions": "本机MongoDB可用；每实例独立UUID测试库。",
+      "parameters": {},
+      "source": "def test_add_edit(client):\n    h=login(client)\n    s=client.post(\"/api/surveys\",headers=h,json={\"title\":\"问卷\"}).json()\n    url=\"/api/surveys/\"+s[\"id\"]+\"/questions\"\n    q=client.post(url,headers=h,json={\"title\":\"姓名\",\"type\":\"text\"})\n    assert q.status_code == 201\n    qid=q.json()[\"questions\"][0][\"id\"]\n    changed=client.put(url+\"/\"+qid,headers=h,json={\"title\":\"年龄\",\"type\":\"number\",\"integer\":True})\n    assert changed.json()[\"questions\"][0][\"id\"] == qid\n    assert client.post(url,headers=h,json={\"title\":\"错误\",\"type\":\"single\"}).status_code == 422\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.17364539997652173,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.7945428999955766,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.01218019996304065,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_c0a1631a0ab1412d8254ac45a0e7d2df"
+    },
+    {
+      "id": "AUTO-006",
+      "nodeid": "tests/test_block4.py::test_invalid[q0-None]",
+      "origin": "已有",
+      "type": "自动化单元/文件检查",
+      "categories": [
+        "答案校验"
+      ],
+      "steps": "用QuestionInput构造题目；对指定输入调用validate_answer。",
+      "inputs": "完整题目q与value见各实例参数。",
+      "expected": "抛HTTPException。原断言未验证异常状态码或具体消息；新增API测试补充422与零写入断言。",
+      "preconditions": "纯函数/本地文件自动测试；无需MongoDB业务数据。",
+      "parameters": {
+        "q": {
+          "id": "q",
+          "title": "问题",
+          "type": "text",
+          "required": true,
+          "options": [],
+          "min_choices": 0,
+          "max_choices": null,
+          "min_length": 0,
+          "max_length": 1000,
+          "min_value": null,
+          "max_value": null,
+          "integer": false,
+          "rules": []
+        },
+        "value": null
+      },
+      "source": "@pytest.mark.parametrize(\"q,value\",[\n    (question(),None), (question(min_length=2),\"a\"), (question(max_length=2),\"abc\"),\n    (question(),\"  \"), (question(\"number\",integer=True),1.5),\n    (question(\"number\",min_value=0),-1), (question(\"number\",max_value=120),121),\n    (question(\"number\"),True), (question(\"number\"),\"12\"),\n    (question(\"single\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}]),\"c\"),\n    (question(\"multiple\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}],min_choices=2),[\"a\"]),\n    (question(\"multiple\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}]),[\"a\",\"a\"]),\n])\ndef test_invalid(q,value):\n    with pytest.raises(HTTPException): validate_answer(q,value)\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.00048449996393173933,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.0003025000332854688,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.00024500000290572643,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": null
+    },
+    {
+      "id": "AUTO-007",
+      "nodeid": "tests/test_block4.py::test_invalid[q1-a]",
+      "origin": "已有",
+      "type": "自动化单元/文件检查",
+      "categories": [
+        "答案校验"
+      ],
+      "steps": "用QuestionInput构造题目；对指定输入调用validate_answer。",
+      "inputs": "完整题目q与value见各实例参数。",
+      "expected": "抛HTTPException。原断言未验证异常状态码或具体消息；新增API测试补充422与零写入断言。",
+      "preconditions": "纯函数/本地文件自动测试；无需MongoDB业务数据。",
+      "parameters": {
+        "q": {
+          "id": "q",
+          "title": "问题",
+          "type": "text",
+          "required": true,
+          "options": [],
+          "min_choices": 0,
+          "max_choices": null,
+          "min_length": 2,
+          "max_length": 1000,
+          "min_value": null,
+          "max_value": null,
+          "integer": false,
+          "rules": []
+        },
+        "value": "a"
+      },
+      "source": "@pytest.mark.parametrize(\"q,value\",[\n    (question(),None), (question(min_length=2),\"a\"), (question(max_length=2),\"abc\"),\n    (question(),\"  \"), (question(\"number\",integer=True),1.5),\n    (question(\"number\",min_value=0),-1), (question(\"number\",max_value=120),121),\n    (question(\"number\"),True), (question(\"number\"),\"12\"),\n    (question(\"single\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}]),\"c\"),\n    (question(\"multiple\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}],min_choices=2),[\"a\"]),\n    (question(\"multiple\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}]),[\"a\",\"a\"]),\n])\ndef test_invalid(q,value):\n    with pytest.raises(HTTPException): validate_answer(q,value)\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.00046330003533512354,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.0002709999680519104,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.00023720000172033906,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": null
+    },
+    {
+      "id": "AUTO-008",
+      "nodeid": "tests/test_block4.py::test_invalid[q2-abc]",
+      "origin": "已有",
+      "type": "自动化单元/文件检查",
+      "categories": [
+        "答案校验"
+      ],
+      "steps": "用QuestionInput构造题目；对指定输入调用validate_answer。",
+      "inputs": "完整题目q与value见各实例参数。",
+      "expected": "抛HTTPException。原断言未验证异常状态码或具体消息；新增API测试补充422与零写入断言。",
+      "preconditions": "纯函数/本地文件自动测试；无需MongoDB业务数据。",
+      "parameters": {
+        "q": {
+          "id": "q",
+          "title": "问题",
+          "type": "text",
+          "required": true,
+          "options": [],
+          "min_choices": 0,
+          "max_choices": null,
+          "min_length": 0,
+          "max_length": 2,
+          "min_value": null,
+          "max_value": null,
+          "integer": false,
+          "rules": []
+        },
+        "value": "abc"
+      },
+      "source": "@pytest.mark.parametrize(\"q,value\",[\n    (question(),None), (question(min_length=2),\"a\"), (question(max_length=2),\"abc\"),\n    (question(),\"  \"), (question(\"number\",integer=True),1.5),\n    (question(\"number\",min_value=0),-1), (question(\"number\",max_value=120),121),\n    (question(\"number\"),True), (question(\"number\"),\"12\"),\n    (question(\"single\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}]),\"c\"),\n    (question(\"multiple\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}],min_choices=2),[\"a\"]),\n    (question(\"multiple\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}]),[\"a\",\"a\"]),\n])\ndef test_invalid(q,value):\n    with pytest.raises(HTTPException): validate_answer(q,value)\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.0004286999464966357,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.00018099998123943806,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.00021580001339316368,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": null
+    },
+    {
+      "id": "AUTO-009",
+      "nodeid": "tests/test_block4.py::test_invalid[q3-  ]",
+      "origin": "已有",
+      "type": "自动化单元/文件检查",
+      "categories": [
+        "答案校验"
+      ],
+      "steps": "用QuestionInput构造题目；对指定输入调用validate_answer。",
+      "inputs": "完整题目q与value见各实例参数。",
+      "expected": "抛HTTPException。原断言未验证异常状态码或具体消息；新增API测试补充422与零写入断言。",
+      "preconditions": "纯函数/本地文件自动测试；无需MongoDB业务数据。",
+      "parameters": {
+        "q": {
+          "id": "q",
+          "title": "问题",
+          "type": "text",
+          "required": true,
+          "options": [],
+          "min_choices": 0,
+          "max_choices": null,
+          "min_length": 0,
+          "max_length": 1000,
+          "min_value": null,
+          "max_value": null,
+          "integer": false,
+          "rules": []
+        },
+        "value": "  "
+      },
+      "source": "@pytest.mark.parametrize(\"q,value\",[\n    (question(),None), (question(min_length=2),\"a\"), (question(max_length=2),\"abc\"),\n    (question(),\"  \"), (question(\"number\",integer=True),1.5),\n    (question(\"number\",min_value=0),-1), (question(\"number\",max_value=120),121),\n    (question(\"number\"),True), (question(\"number\"),\"12\"),\n    (question(\"single\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}]),\"c\"),\n    (question(\"multiple\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}],min_choices=2),[\"a\"]),\n    (question(\"multiple\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}]),[\"a\",\"a\"]),\n])\ndef test_invalid(q,value):\n    with pytest.raises(HTTPException): validate_answer(q,value)\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.0003877999843098223,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.00017389998538419604,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.0002384000108577311,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": null
+    },
+    {
+      "id": "AUTO-010",
+      "nodeid": "tests/test_block4.py::test_invalid[q4-1.5]",
+      "origin": "已有",
+      "type": "自动化单元/文件检查",
+      "categories": [
+        "答案校验"
+      ],
+      "steps": "用QuestionInput构造题目；对指定输入调用validate_answer。",
+      "inputs": "完整题目q与value见各实例参数。",
+      "expected": "抛HTTPException。原断言未验证异常状态码或具体消息；新增API测试补充422与零写入断言。",
+      "preconditions": "纯函数/本地文件自动测试；无需MongoDB业务数据。",
+      "parameters": {
+        "q": {
+          "id": "q",
+          "title": "问题",
+          "type": "number",
+          "required": true,
+          "options": [],
+          "min_choices": 0,
+          "max_choices": null,
+          "min_length": 0,
+          "max_length": 1000,
+          "min_value": null,
+          "max_value": null,
+          "integer": true,
+          "rules": []
+        },
+        "value": 1.5
+      },
+      "source": "@pytest.mark.parametrize(\"q,value\",[\n    (question(),None), (question(min_length=2),\"a\"), (question(max_length=2),\"abc\"),\n    (question(),\"  \"), (question(\"number\",integer=True),1.5),\n    (question(\"number\",min_value=0),-1), (question(\"number\",max_value=120),121),\n    (question(\"number\"),True), (question(\"number\"),\"12\"),\n    (question(\"single\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}]),\"c\"),\n    (question(\"multiple\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}],min_choices=2),[\"a\"]),\n    (question(\"multiple\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}]),[\"a\",\"a\"]),\n])\ndef test_invalid(q,value):\n    with pytest.raises(HTTPException): validate_answer(q,value)\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.0003722999827004969,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.00032590003684163094,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.0002756000030785799,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": null
+    },
+    {
+      "id": "AUTO-011",
+      "nodeid": "tests/test_block4.py::test_invalid[q5--1]",
+      "origin": "已有",
+      "type": "自动化单元/文件检查",
+      "categories": [
+        "答案校验"
+      ],
+      "steps": "用QuestionInput构造题目；对指定输入调用validate_answer。",
+      "inputs": "完整题目q与value见各实例参数。",
+      "expected": "抛HTTPException。原断言未验证异常状态码或具体消息；新增API测试补充422与零写入断言。",
+      "preconditions": "纯函数/本地文件自动测试；无需MongoDB业务数据。",
+      "parameters": {
+        "q": {
+          "id": "q",
+          "title": "问题",
+          "type": "number",
+          "required": true,
+          "options": [],
+          "min_choices": 0,
+          "max_choices": null,
+          "min_length": 0,
+          "max_length": 1000,
+          "min_value": 0.0,
+          "max_value": null,
+          "integer": false,
+          "rules": []
+        },
+        "value": -1
+      },
+      "source": "@pytest.mark.parametrize(\"q,value\",[\n    (question(),None), (question(min_length=2),\"a\"), (question(max_length=2),\"abc\"),\n    (question(),\"  \"), (question(\"number\",integer=True),1.5),\n    (question(\"number\",min_value=0),-1), (question(\"number\",max_value=120),121),\n    (question(\"number\"),True), (question(\"number\"),\"12\"),\n    (question(\"single\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}]),\"c\"),\n    (question(\"multiple\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}],min_choices=2),[\"a\"]),\n    (question(\"multiple\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}]),[\"a\",\"a\"]),\n])\ndef test_invalid(q,value):\n    with pytest.raises(HTTPException): validate_answer(q,value)\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.00061039999127388,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.00019340001745149493,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.00028009997913613915,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": null
+    },
+    {
+      "id": "AUTO-012",
+      "nodeid": "tests/test_block4.py::test_invalid[q6-121]",
+      "origin": "已有",
+      "type": "自动化单元/文件检查",
+      "categories": [
+        "答案校验"
+      ],
+      "steps": "用QuestionInput构造题目；对指定输入调用validate_answer。",
+      "inputs": "完整题目q与value见各实例参数。",
+      "expected": "抛HTTPException。原断言未验证异常状态码或具体消息；新增API测试补充422与零写入断言。",
+      "preconditions": "纯函数/本地文件自动测试；无需MongoDB业务数据。",
+      "parameters": {
+        "q": {
+          "id": "q",
+          "title": "问题",
+          "type": "number",
+          "required": true,
+          "options": [],
+          "min_choices": 0,
+          "max_choices": null,
+          "min_length": 0,
+          "max_length": 1000,
+          "min_value": null,
+          "max_value": 120.0,
+          "integer": false,
+          "rules": []
+        },
+        "value": 121
+      },
+      "source": "@pytest.mark.parametrize(\"q,value\",[\n    (question(),None), (question(min_length=2),\"a\"), (question(max_length=2),\"abc\"),\n    (question(),\"  \"), (question(\"number\",integer=True),1.5),\n    (question(\"number\",min_value=0),-1), (question(\"number\",max_value=120),121),\n    (question(\"number\"),True), (question(\"number\"),\"12\"),\n    (question(\"single\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}]),\"c\"),\n    (question(\"multiple\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}],min_choices=2),[\"a\"]),\n    (question(\"multiple\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}]),[\"a\",\"a\"]),\n])\ndef test_invalid(q,value):\n    with pytest.raises(HTTPException): validate_answer(q,value)\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.00043750001350417733,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.00024349999148398638,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.00024799996754154563,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": null
+    },
+    {
+      "id": "AUTO-013",
+      "nodeid": "tests/test_block4.py::test_invalid[q7-True]",
+      "origin": "已有",
+      "type": "自动化单元/文件检查",
+      "categories": [
+        "答案校验"
+      ],
+      "steps": "用QuestionInput构造题目；对指定输入调用validate_answer。",
+      "inputs": "完整题目q与value见各实例参数。",
+      "expected": "抛HTTPException。原断言未验证异常状态码或具体消息；新增API测试补充422与零写入断言。",
+      "preconditions": "纯函数/本地文件自动测试；无需MongoDB业务数据。",
+      "parameters": {
+        "q": {
+          "id": "q",
+          "title": "问题",
+          "type": "number",
+          "required": true,
+          "options": [],
+          "min_choices": 0,
+          "max_choices": null,
+          "min_length": 0,
+          "max_length": 1000,
+          "min_value": null,
+          "max_value": null,
+          "integer": false,
+          "rules": []
+        },
+        "value": true
+      },
+      "source": "@pytest.mark.parametrize(\"q,value\",[\n    (question(),None), (question(min_length=2),\"a\"), (question(max_length=2),\"abc\"),\n    (question(),\"  \"), (question(\"number\",integer=True),1.5),\n    (question(\"number\",min_value=0),-1), (question(\"number\",max_value=120),121),\n    (question(\"number\"),True), (question(\"number\"),\"12\"),\n    (question(\"single\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}]),\"c\"),\n    (question(\"multiple\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}],min_choices=2),[\"a\"]),\n    (question(\"multiple\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}]),[\"a\",\"a\"]),\n])\ndef test_invalid(q,value):\n    with pytest.raises(HTTPException): validate_answer(q,value)\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.00048019998939707875,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.00017960002878680825,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.00024199998006224632,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": null
+    },
+    {
+      "id": "AUTO-014",
+      "nodeid": "tests/test_block4.py::test_invalid[q8-12]",
+      "origin": "已有",
+      "type": "自动化单元/文件检查",
+      "categories": [
+        "答案校验"
+      ],
+      "steps": "用QuestionInput构造题目；对指定输入调用validate_answer。",
+      "inputs": "完整题目q与value见各实例参数。",
+      "expected": "抛HTTPException。原断言未验证异常状态码或具体消息；新增API测试补充422与零写入断言。",
+      "preconditions": "纯函数/本地文件自动测试；无需MongoDB业务数据。",
+      "parameters": {
+        "q": {
+          "id": "q",
+          "title": "问题",
+          "type": "number",
+          "required": true,
+          "options": [],
+          "min_choices": 0,
+          "max_choices": null,
+          "min_length": 0,
+          "max_length": 1000,
+          "min_value": null,
+          "max_value": null,
+          "integer": false,
+          "rules": []
+        },
+        "value": "12"
+      },
+      "source": "@pytest.mark.parametrize(\"q,value\",[\n    (question(),None), (question(min_length=2),\"a\"), (question(max_length=2),\"abc\"),\n    (question(),\"  \"), (question(\"number\",integer=True),1.5),\n    (question(\"number\",min_value=0),-1), (question(\"number\",max_value=120),121),\n    (question(\"number\"),True), (question(\"number\"),\"12\"),\n    (question(\"single\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}]),\"c\"),\n    (question(\"multiple\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}],min_choices=2),[\"a\"]),\n    (question(\"multiple\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}]),[\"a\",\"a\"]),\n])\ndef test_invalid(q,value):\n    with pytest.raises(HTTPException): validate_answer(q,value)\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.0006435000104829669,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.0002454000059515238,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.00024610001128166914,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": null
+    },
+    {
+      "id": "AUTO-015",
+      "nodeid": "tests/test_block4.py::test_invalid[q9-c]",
+      "origin": "已有",
+      "type": "自动化单元/文件检查",
+      "categories": [
+        "答案校验"
+      ],
+      "steps": "用QuestionInput构造题目；对指定输入调用validate_answer。",
+      "inputs": "完整题目q与value见各实例参数。",
+      "expected": "抛HTTPException。原断言未验证异常状态码或具体消息；新增API测试补充422与零写入断言。",
+      "preconditions": "纯函数/本地文件自动测试；无需MongoDB业务数据。",
+      "parameters": {
+        "q": {
+          "id": "q",
+          "title": "问题",
+          "type": "single",
+          "required": true,
+          "options": [
+            {
+              "id": "a",
+              "label": "A"
+            },
+            {
+              "id": "b",
+              "label": "B"
+            }
+          ],
+          "min_choices": 0,
+          "max_choices": null,
+          "min_length": 0,
+          "max_length": 1000,
+          "min_value": null,
+          "max_value": null,
+          "integer": false,
+          "rules": []
+        },
+        "value": "c"
+      },
+      "source": "@pytest.mark.parametrize(\"q,value\",[\n    (question(),None), (question(min_length=2),\"a\"), (question(max_length=2),\"abc\"),\n    (question(),\"  \"), (question(\"number\",integer=True),1.5),\n    (question(\"number\",min_value=0),-1), (question(\"number\",max_value=120),121),\n    (question(\"number\"),True), (question(\"number\"),\"12\"),\n    (question(\"single\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}]),\"c\"),\n    (question(\"multiple\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}],min_choices=2),[\"a\"]),\n    (question(\"multiple\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}]),[\"a\",\"a\"]),\n])\ndef test_invalid(q,value):\n    with pytest.raises(HTTPException): validate_answer(q,value)\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.0005757000180892646,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.0003002999583259225,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.00025480001932010055,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": null
+    },
+    {
+      "id": "AUTO-016",
+      "nodeid": "tests/test_block4.py::test_invalid[q10-value10]",
+      "origin": "已有",
+      "type": "自动化单元/文件检查",
+      "categories": [
+        "答案校验"
+      ],
+      "steps": "用QuestionInput构造题目；对指定输入调用validate_answer。",
+      "inputs": "完整题目q与value见各实例参数。",
+      "expected": "抛HTTPException。原断言未验证异常状态码或具体消息；新增API测试补充422与零写入断言。",
+      "preconditions": "纯函数/本地文件自动测试；无需MongoDB业务数据。",
+      "parameters": {
+        "q": {
+          "id": "q",
+          "title": "问题",
+          "type": "multiple",
+          "required": true,
+          "options": [
+            {
+              "id": "a",
+              "label": "A"
+            },
+            {
+              "id": "b",
+              "label": "B"
+            }
+          ],
+          "min_choices": 2,
+          "max_choices": null,
+          "min_length": 0,
+          "max_length": 1000,
+          "min_value": null,
+          "max_value": null,
+          "integer": false,
+          "rules": []
+        },
+        "value": [
+          "a"
+        ]
+      },
+      "source": "@pytest.mark.parametrize(\"q,value\",[\n    (question(),None), (question(min_length=2),\"a\"), (question(max_length=2),\"abc\"),\n    (question(),\"  \"), (question(\"number\",integer=True),1.5),\n    (question(\"number\",min_value=0),-1), (question(\"number\",max_value=120),121),\n    (question(\"number\"),True), (question(\"number\"),\"12\"),\n    (question(\"single\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}]),\"c\"),\n    (question(\"multiple\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}],min_choices=2),[\"a\"]),\n    (question(\"multiple\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}]),[\"a\",\"a\"]),\n])\ndef test_invalid(q,value):\n    with pytest.raises(HTTPException): validate_answer(q,value)\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.0004752000095322728,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.00019660004181787372,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.0001848999527283013,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": null
+    },
+    {
+      "id": "AUTO-017",
+      "nodeid": "tests/test_block4.py::test_invalid[q11-value11]",
+      "origin": "已有",
+      "type": "自动化单元/文件检查",
+      "categories": [
+        "答案校验"
+      ],
+      "steps": "用QuestionInput构造题目；对指定输入调用validate_answer。",
+      "inputs": "完整题目q与value见各实例参数。",
+      "expected": "抛HTTPException。原断言未验证异常状态码或具体消息；新增API测试补充422与零写入断言。",
+      "preconditions": "纯函数/本地文件自动测试；无需MongoDB业务数据。",
+      "parameters": {
+        "q": {
+          "id": "q",
+          "title": "问题",
+          "type": "multiple",
+          "required": true,
+          "options": [
+            {
+              "id": "a",
+              "label": "A"
+            },
+            {
+              "id": "b",
+              "label": "B"
+            }
+          ],
+          "min_choices": 0,
+          "max_choices": null,
+          "min_length": 0,
+          "max_length": 1000,
+          "min_value": null,
+          "max_value": null,
+          "integer": false,
+          "rules": []
+        },
+        "value": [
+          "a",
+          "a"
+        ]
+      },
+      "source": "@pytest.mark.parametrize(\"q,value\",[\n    (question(),None), (question(min_length=2),\"a\"), (question(max_length=2),\"abc\"),\n    (question(),\"  \"), (question(\"number\",integer=True),1.5),\n    (question(\"number\",min_value=0),-1), (question(\"number\",max_value=120),121),\n    (question(\"number\"),True), (question(\"number\"),\"12\"),\n    (question(\"single\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}]),\"c\"),\n    (question(\"multiple\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}],min_choices=2),[\"a\"]),\n    (question(\"multiple\",options=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}]),[\"a\",\"a\"]),\n])\ndef test_invalid(q,value):\n    with pytest.raises(HTTPException): validate_answer(q,value)\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.0004379000165499747,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.00025069998810067773,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.00034899997990578413,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": null
+    },
+    {
+      "id": "AUTO-018",
+      "nodeid": "tests/test_block4.py::test_valid",
+      "origin": "已有",
+      "type": "自动化单元/文件检查",
+      "categories": [
+        "答案校验"
+      ],
+      "steps": "分别验证选答空值、数字上边界、中文文本精确长度。",
+      "inputs": "required=false/null；整数0～120输入120；2字文本输入中文。",
+      "expected": "分别返回None、120、中文。",
+      "preconditions": "纯函数/本地文件自动测试；无需MongoDB业务数据。",
+      "parameters": {},
+      "source": "def test_valid():\n    assert validate_answer(question(required=False),None) is None\n    assert validate_answer(question(\"number\",integer=True,min_value=0,max_value=120),120) == 120\n    assert validate_answer(question(min_length=2,max_length=2),\"中文\") == \"中文\"\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.00020160002168267965,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.0002729000407271087,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.00023519998649135232,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": null
+    },
+    {
+      "id": "AUTO-019",
+      "nodeid": "tests/test_block5.py::test_jump[single-eq-a-a]",
+      "origin": "已有",
+      "type": "自动化单元/文件检查",
+      "categories": [
+        "跳转逻辑"
+      ],
+      "steps": "构造带规则题与被跳过题；检查规则；完整walk；再加入路径外答案。",
+      "inputs": "kind/op/value/answer见实例参数；命中目标END；路径外题skip。",
+      "expected": "匹配路径仅[q]；包含skip答案时抛HTTPException。",
+      "preconditions": "纯函数/本地文件自动测试；无需MongoDB业务数据。",
+      "parameters": {
+        "kind": "single",
+        "op": "eq",
+        "value": "a",
+        "answer": "a"
+      },
+      "source": "@pytest.mark.parametrize(\"kind,op,value,answer\",[\n    (\"single\",\"eq\",\"a\",\"a\"),\n    (\"multiple\",\"contains_any\",[\"a\"],[\"a\",\"b\"]),\n    (\"multiple\",\"contains_all\",[\"a\",\"b\"],[\"a\",\"b\"]),\n    (\"number\",\"gte\",18,20),\n])\ndef test_jump(kind,op,value,answer):\n    opts={\"options\":[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}]} if kind != \"number\" else {}\n    q=question(kind,**opts)\n    q[\"rules\"]=[{\"op\":op,\"value\":value,\"target\":\"END\"}]\n    qs=[q,{**question(),\"id\":\"skip\"}]\n    validate_rules(qs)\n    assert walk(qs,{\"q\":answer})[\"path\"] == [\"q\"]\n    with pytest.raises(HTTPException): walk(qs,{\"q\":answer,\"skip\":\"非法额外答案\"})\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.0007624999852851033,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.0005966000026091933,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.00032729998929426074,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": null
+    },
+    {
+      "id": "AUTO-020",
+      "nodeid": "tests/test_block5.py::test_jump[multiple-contains_any-value1-answer1]",
+      "origin": "已有",
+      "type": "自动化单元/文件检查",
+      "categories": [
+        "跳转逻辑"
+      ],
+      "steps": "构造带规则题与被跳过题；检查规则；完整walk；再加入路径外答案。",
+      "inputs": "kind/op/value/answer见实例参数；命中目标END；路径外题skip。",
+      "expected": "匹配路径仅[q]；包含skip答案时抛HTTPException。",
+      "preconditions": "纯函数/本地文件自动测试；无需MongoDB业务数据。",
+      "parameters": {
+        "kind": "multiple",
+        "op": "contains_any",
+        "value": [
+          "a"
+        ],
+        "answer": [
+          "a",
+          "b"
+        ]
+      },
+      "source": "@pytest.mark.parametrize(\"kind,op,value,answer\",[\n    (\"single\",\"eq\",\"a\",\"a\"),\n    (\"multiple\",\"contains_any\",[\"a\"],[\"a\",\"b\"]),\n    (\"multiple\",\"contains_all\",[\"a\",\"b\"],[\"a\",\"b\"]),\n    (\"number\",\"gte\",18,20),\n])\ndef test_jump(kind,op,value,answer):\n    opts={\"options\":[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}]} if kind != \"number\" else {}\n    q=question(kind,**opts)\n    q[\"rules\"]=[{\"op\":op,\"value\":value,\"target\":\"END\"}]\n    qs=[q,{**question(),\"id\":\"skip\"}]\n    validate_rules(qs)\n    assert walk(qs,{\"q\":answer})[\"path\"] == [\"q\"]\n    with pytest.raises(HTTPException): walk(qs,{\"q\":answer,\"skip\":\"非法额外答案\"})\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.0007579000084660947,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.0005381999653764069,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.0002978999982587993,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": null
+    },
+    {
+      "id": "AUTO-021",
+      "nodeid": "tests/test_block5.py::test_jump[multiple-contains_all-value2-answer2]",
+      "origin": "已有",
+      "type": "自动化单元/文件检查",
+      "categories": [
+        "跳转逻辑"
+      ],
+      "steps": "构造带规则题与被跳过题；检查规则；完整walk；再加入路径外答案。",
+      "inputs": "kind/op/value/answer见实例参数；命中目标END；路径外题skip。",
+      "expected": "匹配路径仅[q]；包含skip答案时抛HTTPException。",
+      "preconditions": "纯函数/本地文件自动测试；无需MongoDB业务数据。",
+      "parameters": {
+        "kind": "multiple",
+        "op": "contains_all",
+        "value": [
+          "a",
+          "b"
+        ],
+        "answer": [
+          "a",
+          "b"
+        ]
+      },
+      "source": "@pytest.mark.parametrize(\"kind,op,value,answer\",[\n    (\"single\",\"eq\",\"a\",\"a\"),\n    (\"multiple\",\"contains_any\",[\"a\"],[\"a\",\"b\"]),\n    (\"multiple\",\"contains_all\",[\"a\",\"b\"],[\"a\",\"b\"]),\n    (\"number\",\"gte\",18,20),\n])\ndef test_jump(kind,op,value,answer):\n    opts={\"options\":[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}]} if kind != \"number\" else {}\n    q=question(kind,**opts)\n    q[\"rules\"]=[{\"op\":op,\"value\":value,\"target\":\"END\"}]\n    qs=[q,{**question(),\"id\":\"skip\"}]\n    validate_rules(qs)\n    assert walk(qs,{\"q\":answer})[\"path\"] == [\"q\"]\n    with pytest.raises(HTTPException): walk(qs,{\"q\":answer,\"skip\":\"非法额外答案\"})\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.0007721000001765788,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.0008084999863058329,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.0003980000037699938,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": null
+    },
+    {
+      "id": "AUTO-022",
+      "nodeid": "tests/test_block5.py::test_jump[number-gte-18-20]",
+      "origin": "已有",
+      "type": "自动化单元/文件检查",
+      "categories": [
+        "跳转逻辑"
+      ],
+      "steps": "构造带规则题与被跳过题；检查规则；完整walk；再加入路径外答案。",
+      "inputs": "kind/op/value/answer见实例参数；命中目标END；路径外题skip。",
+      "expected": "匹配路径仅[q]；包含skip答案时抛HTTPException。",
+      "preconditions": "纯函数/本地文件自动测试；无需MongoDB业务数据。",
+      "parameters": {
+        "kind": "number",
+        "op": "gte",
+        "value": 18,
+        "answer": 20
+      },
+      "source": "@pytest.mark.parametrize(\"kind,op,value,answer\",[\n    (\"single\",\"eq\",\"a\",\"a\"),\n    (\"multiple\",\"contains_any\",[\"a\"],[\"a\",\"b\"]),\n    (\"multiple\",\"contains_all\",[\"a\",\"b\"],[\"a\",\"b\"]),\n    (\"number\",\"gte\",18,20),\n])\ndef test_jump(kind,op,value,answer):\n    opts={\"options\":[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}]} if kind != \"number\" else {}\n    q=question(kind,**opts)\n    q[\"rules\"]=[{\"op\":op,\"value\":value,\"target\":\"END\"}]\n    qs=[q,{**question(),\"id\":\"skip\"}]\n    validate_rules(qs)\n    assert walk(qs,{\"q\":answer})[\"path\"] == [\"q\"]\n    with pytest.raises(HTTPException): walk(qs,{\"q\":answer,\"skip\":\"非法额外答案\"})\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.0005158999701961875,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.000430600019171834,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.00029090000316500664,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": null
+    },
+    {
+      "id": "AUTO-023",
+      "nodeid": "tests/test_block5.py::test_bad_target[q]",
+      "origin": "已有",
+      "type": "自动化单元/文件检查",
+      "categories": [
+        "跳转逻辑"
+      ],
+      "steps": "构造数字题q，设置gt 0规则到目标，调用validate_rules。",
+      "inputs": "target=q或missing。",
+      "expected": "自跳/不存在目标均抛HTTPException。",
+      "preconditions": "纯函数/本地文件自动测试；无需MongoDB业务数据。",
+      "parameters": {
+        "target": "q"
+      },
+      "source": "@pytest.mark.parametrize(\"target\",[\"q\",\"missing\"])\ndef test_bad_target(target):\n    q=question(\"number\")\n    q[\"rules\"]=[{\"op\":\"gt\",\"value\":0,\"target\":target}]\n    with pytest.raises(HTTPException): validate_rules([q])\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.0004820000031031668,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.00026240001898258924,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.00023990002227947116,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": null
+    },
+    {
+      "id": "AUTO-024",
+      "nodeid": "tests/test_block5.py::test_bad_target[missing]",
+      "origin": "已有",
+      "type": "自动化单元/文件检查",
+      "categories": [
+        "跳转逻辑"
+      ],
+      "steps": "构造数字题q，设置gt 0规则到目标，调用validate_rules。",
+      "inputs": "target=q或missing。",
+      "expected": "自跳/不存在目标均抛HTTPException。",
+      "preconditions": "纯函数/本地文件自动测试；无需MongoDB业务数据。",
+      "parameters": {
+        "target": "missing"
+      },
+      "source": "@pytest.mark.parametrize(\"target\",[\"q\",\"missing\"])\ndef test_bad_target(target):\n    q=question(\"number\")\n    q[\"rules\"]=[{\"op\":\"gt\",\"value\":0,\"target\":target}]\n    with pytest.raises(HTTPException): validate_rules([q])\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.0004935000324621797,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.00036230002297088504,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.0002665999927558005,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": null
+    },
+    {
+      "id": "AUTO-025",
+      "nodeid": "tests/test_block5.py::test_rule_persistence",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "categories": [
+        "跳转逻辑"
+      ],
+      "steps": "通过API创建问卷、数字题、规则，然后读取MongoDB。",
+      "inputs": "lt 18→END。",
+      "expected": "配置规则200；数据库rules与请求一致。",
+      "preconditions": "本机MongoDB可用；每实例独立UUID测试库。",
+      "parameters": {},
+      "source": "def test_rule_persistence(client):\n    h=login(client)\n    sid=client.post(\"/api/surveys\",headers=h,json={\"title\":\"规则\"}).json()[\"id\"]\n    url=\"/api/surveys/\"+sid\n    qid=client.post(url+\"/questions\",headers=h,json={\"title\":\"年龄\",\"type\":\"number\"}).json()[\"questions\"][0][\"id\"]\n    rules=[{\"op\":\"lt\",\"value\":18,\"target\":\"END\"}]\n    assert client.put(url+\"/questions/\"+qid+\"/rules\",headers=h,json={\"rules\":rules}).status_code == 200\n    assert client.app.state.db.surveys.find_one({\"_id\":sid})[\"questions\"][0][\"rules\"] == rules\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.16153300000587478,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.8597014000406489,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.01512880000518635,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_d5b9bdc53f6747ef9b7ec9dcdf93cc8f"
+    }
+  ]
+}

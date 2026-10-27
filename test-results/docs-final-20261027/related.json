@@ -1,0 +1,272 @@
+{
+  "executed_at": "2026-10-27T01:13:50.470976+08:00",
+  "exitstatus": 0,
+  "cases": [
+    {
+      "id": "AUTO-001",
+      "nodeid": "tests/test_block9.py::test_offline_docs",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "categories": [
+        "其他"
+      ],
+      "steps": "读取/docs、OpenAPI；扫描本地静态文件。",
+      "inputs": "5个本地资源文件。",
+      "expected": "docs200；schema含单题统计路径与QuestionInput；静态文件没有外部http链接。",
+      "preconditions": "本机MongoDB可用；每实例独立UUID测试库。",
+      "parameters": {},
+      "source": "def test_offline_docs(client):\n    assert client.get(\"/docs\").status_code == 200\n    schema=client.get(\"/openapi.json\").json()\n    assert \"/api/surveys/{sid}/stats/{qid}\" in schema[\"paths\"]\n    assert \"QuestionInput\" in schema[\"components\"][\"schemas\"]\n    for asset in (\"index.html\",\"docs.html\",\"app.js\",\"docs.js\",\"style.css\"):\n        content=(Path(__file__).parents[1]/\"app\"/\"static\"/asset).read_text(encoding=\"utf-8\")\n        assert \"https://\" not in content and \"http://\" not in content\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.1487859000917524,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.19619869999587536,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.016741500003263354,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_8b8a17c831664dc3b0688750a2bb45ee"
+    },
+    {
+      "id": "AUTO-002",
+      "nodeid": "tests/test_block9.py::test_documentation_present",
+      "origin": "已有",
+      "type": "自动化单元/文件检查",
+      "categories": [
+        "其他"
+      ],
+      "steps": "检查7份文档存在且长度大于100；检查.env.example。",
+      "inputs": "DATABASE/API/LOGIC/MANUAL_TESTS/REPORT_TEMPLATE/AI_USAGE_LOG/TEST_RESULTS。",
+      "expected": "文档非空且环境示例含MONGODB_URI；仅检查存在性，不证明文档业务覆盖。",
+      "preconditions": "纯函数/本地文件自动测试；无需MongoDB业务数据。",
+      "parameters": {},
+      "source": "def test_documentation_present():\n    root=Path(__file__).parents[1]\n    for name in (\"DATABASE.md\",\"API.md\",\"LOGIC.md\",\"MANUAL_TESTS.md\",\"REPORT_TEMPLATE.md\",\"AI_USAGE_LOG.md\",\"TEST_RESULTS.md\"):\n        assert len((root/\"docs\"/name).read_text(encoding=\"utf-8\")) > 100\n    assert \"MONGODB_URI\" in (root/\".env.example\").read_text()\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.00031919998582452536,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.03013719990849495,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.0003176999744027853,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": null
+    },
+    {
+      "id": "AUTO-003",
+      "nodeid": "tests/test_block6.py::test_submit",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "categories": [
+        "提交问卷"
+      ],
+      "steps": "发布匿名数字问卷；检查未登录读取、next、非法提交、合法提交、再次提交；创建者/他人读取答卷。",
+      "inputs": "必答整数0～120；200→20→21；独立filler用户。",
+      "expected": "读取未登录401；next首题；非法422；合法201；重复409；仅一答卷，隐藏respondent、respondent_id、once_key；他人详情404。注意原用例401针对读取，不是提交。",
+      "preconditions": "本机MongoDB可用；每实例独立UUID测试库。",
+      "parameters": {},
+      "source": "def test_submit(client):\n    h,sid,qid=setup_survey(client,anonymous=True)\n    f=login(client,\"filler\")\n    url=\"/api/fill/\"+sid\n    assert client.get(url).status_code == 401\n    assert client.get(url,headers=f).status_code == 200\n    assert client.post(url+\"/next\",headers=f,json={\"answers\":{}}).json()[\"next_question_id\"] == qid\n    assert client.post(url+\"/submit\",headers=f,json={\"answers\":{qid:200}}).status_code == 422\n    assert client.post(url+\"/submit\",headers=f,json={\"answers\":{qid:20}}).status_code == 201\n    assert client.post(url+\"/submit\",headers=f,json={\"answers\":{qid:21}}).status_code == 409\n    rows=client.get(\"/api/surveys/\"+sid+\"/responses\",headers=h).json()\n    assert len(rows) == 1 and \"respondent\" not in rows[0] and \"respondent_id\" not in rows[0]\n    assert \"once_key\" not in rows[0]\n    assert client.get(\"/api/surveys/\"+sid+\"/responses\",headers=f).status_code == 404\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.14475769991986454,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 1.5237559999804944,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.02729420003015548,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_55ad1fbbfcb148419356cde073b94601"
+    },
+    {
+      "id": "AUTO-004",
+      "nodeid": "tests/test_block7.py::test_statistics",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "categories": [
+        "统计结果"
+      ],
+      "steps": "添加四题并发布；查空统计；提交两份完整答卷；查全卷、数字单题及越权统计。",
+      "inputs": "single:a/b；multiple:[a,b]/[b]；text:甲/乙；number:10/20；允许多次。",
+      "expected": "空总数0且均值null；提交各201；总数2；单选[1,1]、多选[1,2]、文本[甲,乙]、数字均值15；数字单题count2；越权整卷/单题404。",
+      "preconditions": "本机MongoDB可用；每实例独立UUID测试库。",
+      "parameters": {},
+      "source": "def test_statistics(client):\n    h=login(client)\n    sid=client.post(\"/api/surveys\",headers=h,json={\"title\":\"统计\",\"allow_multiple\":True,\"anonymous\":True}).json()[\"id\"]\n    base=\"/api/surveys/\"+sid\n    opts=[{\"id\":\"a\",\"label\":\"A\"},{\"id\":\"b\",\"label\":\"B\"}]\n    for kind in (\"single\",\"multiple\",\"text\",\"number\"):\n        body={\"title\":kind,\"type\":kind}\n        if kind in (\"single\",\"multiple\"): body[\"options\"]=opts\n        client.post(base+\"/questions\",headers=h,json=body)\n    qs=client.get(base,headers=h).json()[\"questions\"]\n    client.post(base+\"/publish\",headers=h)\n    empty=client.get(base+\"/stats\",headers=h).json()\n    assert empty[\"total_responses\"] == 0 and empty[\"questions\"][3][\"average\"] is None\n    for values in ([\"a\",[\"a\",\"b\"],\"甲\",10],[\"b\",[\"b\"],\"乙\",20]):\n        answers={q[\"id\"]:v for q,v in zip(qs,values)}\n        assert client.post(\"/api/fill/\"+sid+\"/submit\",headers=h,json={\"answers\":answers}).status_code == 201\n    stats=client.get(base+\"/stats\",headers=h).json()\n    assert stats[\"total_responses\"] == 2\n    assert [o[\"count\"] for o in stats[\"questions\"][0][\"options\"]] == [1,1]\n    assert [o[\"count\"] for o in stats[\"questions\"][1][\"options\"]] == [1,2]\n    assert stats[\"questions\"][2][\"values\"] == [\"甲\",\"乙\"]\n    assert stats[\"questions\"][3][\"average\"] == 15\n    single=client.get(base+\"/stats/\"+qs[3][\"id\"],headers=h).json()\n    assert single[\"average\"] == 15 and single[\"answer_count\"] == 2\n    other=login(client,\"other\")\n    assert client.get(base+\"/stats\",headers=other).status_code == 404\n    assert client.get(base+\"/stats/\"+qs[3][\"id\"],headers=other).status_code == 404\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.1518762999912724,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 1.5587287000380456,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.010102299973368645,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_cbc2849208ba42bc83a02d6ef7248a7d"
+    },
+    {
+      "id": "AUTO-005",
+      "nodeid": "tests/test_phase2_block5.py::test_share_revoke_snapshot_and_usage_isolation",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "分享给另一账号；复用；尝试编辑、查看问卷答卷；撤销后再访问。",
+      "inputs": "owner/alice、reader、stranger",
+      "expected": "共享仅查看复用；撤销阻止新复用；已有快照仍可发布填写；使用清单不泄露他人问卷。",
+      "categories": [
+        "题目分享权限"
+      ],
+      "parameters": {},
+      "source": "@case('题目分享权限', '分享给另一账号；复用；尝试编辑、查看问卷答卷；撤销后再访问。', 'owner/alice、reader、stranger', '共享仅查看复用；撤销阻止新复用；已有快照仍可发布填写；使用清单不泄露他人问卷。')\ndef test_share_revoke_snapshot_and_usage_isolation(client):\n    h,b,q=library(client)\n    reader=login(client,'reader'); stranger=login(client,'stranger')\n    owner_sid,_=import_into(client,h,q)\n    base='/api/bank-questions/'+q['id']\n    assert client.post(base+'/shares',headers=h,json={'username':'reader'}).status_code==200\n    assert len(client.get('/api/shared-questions',headers=reader).json())==1\n    shared=client.get(base,headers=reader).json()\n    assert shared['bank_ids']==[] and 'shared_with' not in shared\n    assert client.get(base+'/versions',headers=reader).status_code==200\n    sid,instance=import_into(client,reader,q)\n    before=client.app.state.db.surveys.find_one({'_id':sid})\n    assert version(client,reader,q).status_code==404\n    assert client.post(base+'/shares',headers=reader,json={'username':'stranger'}).status_code==404\n    for suffix in ('','/responses','/stats'):\n        assert client.get('/api/surveys/'+sid+suffix,headers=h).status_code==404\n        assert client.get('/api/surveys/'+owner_sid+suffix,headers=reader).status_code==404\n    assert [s['survey_id'] for s in client.get(base+'/usages',headers=h).json()]==[owner_sid]\n    assert [s['survey_id'] for s in client.get(base+'/usages',headers=reader).json()]==[sid]\n    assert client.get(base+'/usages',headers=stranger).status_code==404\n    assert client.delete(base+'/shares/reader',headers=h).status_code==200\n    assert client.get(base,headers=reader).status_code==404\n    assert client.get('/api/shared-questions',headers=reader).json()==[]\n    assert client.post(f'/api/surveys/{sid}/library-questions',headers=reader,json={'question_id':q['id'],'version_id':q['latest_version']['id']}).status_code==404\n    assert client.app.state.db.surveys.find_one({'_id':sid})==before\n    assert client.get(base+'/usages',headers=reader).status_code==200\n    assert client.post(f'/api/surveys/{sid}/publish',headers=reader).status_code==200\n    assert client.post(f'/api/fill/{sid}/submit',headers=reader,json={'answers':{instance['id']:12}}).status_code==201\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.1252982000587508,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 2.3608276000013575,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.01043520006351173,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_e0547d025b1a4571a180182b67b51380"
+    },
+    {
+      "id": "AUTO-006",
+      "nodeid": "tests/test_phase2_block4.py::test_snapshots_and_published_freeze",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "同版本加入两次；创建新版本；显式换版；发布、提交后尝试换版。",
+      "inputs": "数字题V1、V2；答案键为实例ID",
+      "expected": "实例ID不同；原快照不自动更新；换版保持ID；发布后拒绝；答卷不变。",
+      "categories": [
+        "复用快照"
+      ],
+      "parameters": {},
+      "source": "@case('复用快照', '同版本加入两次；创建新版本；显式换版；发布、提交后尝试换版。', '数字题V1、V2；答案键为实例ID', '实例ID不同；原快照不自动更新；换版保持ID；发布后拒绝；答卷不变。')\ndef test_snapshots_and_published_freeze(client):\n    h,b,q=library(client)\n    sid,a=import_into(client,h,q)\n    _,bq=import_into(client,h,q,sid)\n    assert len({a['id'],bq['id'],q['id'],q['latest_version']['id']}) == 4\n    v=version(client,h,q).json()\n    base=f'/api/surveys/{sid}'\n    assert client.get(base,headers=h).json()['questions'][0] == a\n    path=base+f'/questions/{a[\"id\"]}/version'\n    body={'question_id':q['id'],'version_id':v['id']}\n    changed=client.put(path,headers=h,json=body).json()['questions'][0]\n    assert changed['id']==a['id'] and changed['source']['version_id']==v['id']\n    assert client.put(base+f'/questions/{a[\"id\"]}',headers=h,json=v['content']).status_code == 409\n    assert client.post(base+'/publish',headers=h).status_code == 200\n    assert client.post(f'/api/fill/{sid}/submit',headers=h,json={'answers':{a['id']:10,bq['id']:20}}).status_code == 201\n    d=client.app.state.db\n    before=d.surveys.find_one({'_id':sid}); response=d.responses.find_one()\n    assert client.put(path,headers=h,json=body).status_code == 409\n    version(client,h,q,title='第三版',key='third')\n    assert d.surveys.find_one({'_id':sid})==before and d.responses.find_one()==response\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.13370499992743134,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.8414697999833152,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.010039799963124096,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_bf3310cc920044918c9d42c7926616ba"
+    },
+    {
+      "id": "AUTO-007",
+      "nodeid": "tests/test_auth_browser.py::test_separate_auth_views",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "登录页进入注册页并返回；验证必填、格式、密码长度、一致性和重复账号；注册后登录、退出；分享链接上注册登录。",
+      "inputs": "ui_user、password123；空字段、短密码、不一致密码、重复用户名",
+      "expected": "独立表单；错误提示明确且无无效注册写入；注册成功返回登录且不自动登录；登录进入首页或原问卷；退出会话失效。",
+      "categories": [
+        "认证浏览器自动化"
+      ],
+      "parameters": {},
+      "source": "@case('认证浏览器自动化', '登录页进入注册页并返回；验证必填、格式、密码长度、一致性和重复账号；注册后登录、退出；分享链接上注册登录。',\n      'ui_user、password123；空字段、短密码、不一致密码、重复用户名',\n      '独立表单；错误提示明确且无无效注册写入；注册成功返回登录且不自动登录；登录进入首页或原问卷；退出会话失效。')\ndef test_separate_auth_views(client):\n    pw = pytest.importorskip('playwright.sync_api')\n    _, sid, _ = setup_survey(client)\n    sock = socket.socket(); sock.bind(('127.0.0.1', 0))\n    origin = f'http://127.0.0.1:{sock.getsockname()[1]}'\n    app = create_app(Settings(mongo_uri=MONGO_URI, database=client.app.state.db.name))\n    server = uvicorn.Server(uvicorn.Config(app, log_level='error'))\n    thread = threading.Thread(target=server.run, kwargs={'sockets': [sock]}, daemon=True)\n    thread.start()\n    try:\n        for _ in range(100):\n            if server.started: break\n            time.sleep(.1)\n        assert server.started\n        with pw.sync_playwright() as p:\n            browser = p.chromium.launch(channel='msedge', headless=True)\n            page = browser.new_page()\n            errors = []; requests = []\n            page.on('pageerror', lambda e: errors.append(str(e)))\n            page.on('request', lambda r: requests.append(r.url) if r.url.endswith('/api/auth/register') else None)\n            page.goto(origin)\n            pw.expect(page.locator('#auth')).to_be_visible()\n            pw.expect(page.locator('#confirmPassword')).to_have_count(0)\n            page.locator('#register').click()\n            pw.expect(page.locator('#auth')).to_have_count(0)\n            pw.expect(page.locator('#registration')).to_be_visible()\n            page.locator('#backToLogin').click()\n            pw.expect(page.locator('#auth')).to_be_visible()\n            page.locator('#register').click()\n            page.locator('#submitRegistration').click()\n            pw.expect(page.locator('#notice')).to_contain_text('请填写')\n            page.locator('#username').fill('!bad')\n            page.locator('#password').fill('password123')\n            page.locator('#confirmPassword').fill('password123')\n            page.locator('#submitRegistration').click()\n            pw.expect(page.locator('#notice')).to_contain_text('用户名须')\n            page.locator('#username').fill('ui_user')\n            page.locator('#password').fill('short')\n            page.locator('#submitRegistration').click()\n            pw.expect(page.locator('#notice')).to_contain_text('密码长度')\n            page.locator('#password').fill('x'*17)\n            page.locator('#confirmPassword').fill('x'*17)\n            page.locator('#submitRegistration').click()\n            pw.expect(page.locator('#notice')).to_contain_text('8～16个字符')\n            page.locator('#password').fill('password123')\n            page.locator('#confirmPassword').fill('different')\n            page.locator('#submitRegistration').click()\n            pw.expect(page.locator('#notice')).to_contain_text('不一致')\n            assert requests == []\n            page.locator('#confirmPassword').fill('password123')\n            page.locator('#submitRegistration').click()\n            pw.expect(page.locator('#notice')).to_contain_text('注册成功')\n            pw.expect(page.locator('#auth')).to_be_visible()\n            pw.expect(page.locator('#password')).to_have_value('')\n            assert page.evaluate(\"sessionStorage.getItem('survey_token')\") is None\n            page.locator('#register').click()\n            page.locator('#username').fill('UI_USER')\n            page.locator('#password').fill('password123')\n            page.locator('#confirmPassword').fill('password123')\n            page.locator('#submitRegistration').click()\n            pw.expect(page.locator('#notice')).to_contain_text('用户名已存在')\n            assert client.app.state.db.users.count_documents({'username': 'ui_user'}) == 1\n            page.locator('#backToLogin').click()\n            page.locator('#username').fill('ui_user'); page.locator('#password').fill('incorrect')\n            page.get_by_role('button', name='登录', exact=True).click()\n            pw.expect(page.locator('#notice')).to_contain_text('用户名或密码错误')\n            page.locator('#password').fill('password123')\n            page.get_by_role('button', name='登录', exact=True).click()\n            pw.expect(page.locator('#new')).to_be_visible()\n            old_token = page.evaluate(\"sessionStorage.getItem('survey_token')\")\n            page.locator('#logout').click()\n            pw.expect(page.locator('#auth')).to_be_visible()\n            assert page.evaluate(\"sessionStorage.getItem('survey_token')\") is None\n            assert client.get('/api/auth/me', headers={'Authorization':'Bearer '+old_token}).status_code == 401\n            page.goto(origin+'/survey/'+sid)\n            page.locator('#register').click()\n            page.locator('#username').fill('share_reader'); page.locator('#password').fill('password123')\n            page.locator('#confirmPassword').fill('password123'); page.locator('#submitRegistration').click()\n            pw.expect(page.locator('#notice')).to_contain_text('注册成功')\n            assert page.url == origin+'/survey/'+sid\n            page.locator('#password').fill('password123')\n            page.get_by_role('button', name='登录', exact=True).click()\n            pw.expect(page.locator('#answerForm')).to_be_visible()\n            from app.auth import digest, now\n            import secrets\n            salt = secrets.token_hex(16)\n            client.app.state.db.users.insert_one({'_id':'browser_legacy','username':'browser_legacy',\n                'salt':salt,'password_hash':digest('L'*128,salt),'created_at':now()})\n            page.locator('#logout').click()\n            pw.expect(page.locator('#auth')).to_be_visible()\n            page.locator('#username').fill('browser_legacy')\n            page.locator('#password').fill('L'*128)\n            page.get_by_role('button',name='登录',exact=True).click()\n            pw.expect(page.locator('#answerForm')).to_be_visible()\n            assert errors == [], errors\n            browser.close()\n    finally:\n        server.should_exit = True; thread.join(timeout=10); sock.close()\n        assert not thread.is_alive()\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.13052249990869313,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 9.207355099963024,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.013011800008825958,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_b01676f795a444d8aa2cc493000adf75"
+    }
+  ]
+}

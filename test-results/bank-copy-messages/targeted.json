@@ -1,0 +1,795 @@
+{
+  "executed_at": "2026-10-27T00:10:18.448186+08:00",
+  "exitstatus": 0,
+  "cases": [
+    {
+      "id": "AUTO-001",
+      "nodeid": "tests/test_bank_copy_messages.py::test_copy_snapshot_preserves_data[single-a]",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "创建并发布问卷、提交答卷；复制至题库；重复复制；比较原数据。",
+      "inputs": "四种题型及相应答案、完整校验配置",
+      "expected": "内容完整，复制初版无规则和实例ID；重复不新增族或版本；问卷、答卷不变。",
+      "categories": [
+        "从问卷保存题目"
+      ],
+      "parameters": {
+        "kind": "single",
+        "value": "a"
+      },
+      "source": "@case('从问卷保存题目', '创建并发布问卷、提交答卷；复制至题库；重复复制；比较原数据。', '四种题型及相应答案、完整校验配置', '内容完整，复制初版无规则和实例ID；重复不新增族或版本；问卷、答卷不变。')\n@pytest.mark.parametrize('kind,value', [('single','a'),('multiple',['a','b']),('text','课程评价'),('number',18)])\ndef test_copy_snapshot_preserves_data(client, kind, value):\n    h=login(client)\n    data=question_input(kind,min_value=0,max_value=120,integer=True,min_length=2,max_length=100)\n    sid,qs=survey_with_questions(client,h,[data])\n    assert client.post(f'/api/fill/{sid}/submit',headers=h,json={'answers':{qs[0]['id']:value}}).status_code==201\n    bid=client.post('/api/question-banks',headers=h,json={'name':'复用库'}).json()['id']\n    d=client.app.state.db;before=[list(d[c].find()) for c in ('users','surveys','responses')]\n    body={'survey_id':sid,'instance_id':qs[0]['id']};url=f'/api/question-banks/{bid}/from-survey'\n    r=client.post(url,headers=h,json=body);assert r.status_code==200,r.text\n    v=r.json()['question']['latest_version']\n    assert v['content']=={k:v for k,v in qs[0].items() if k not in ('id','rules','source')}\n    again=client.post(url,headers=h,json=body).json()\n    assert again['added'] is False and '无需重复' in again['message']\n    assert d.bank_questions.count_documents({})==d.question_versions.count_documents({})==1\n    assert before==[list(d[c].find()) for c in ('users','surveys','responses')]\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.1699460999807343,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.784871399984695,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.04232070001307875,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_395ee130f0fa40dc9da901a27313cf0f"
+    },
+    {
+      "id": "AUTO-002",
+      "nodeid": "tests/test_bank_copy_messages.py::test_copy_snapshot_preserves_data[multiple-value1]",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "创建并发布问卷、提交答卷；复制至题库；重复复制；比较原数据。",
+      "inputs": "四种题型及相应答案、完整校验配置",
+      "expected": "内容完整，复制初版无规则和实例ID；重复不新增族或版本；问卷、答卷不变。",
+      "categories": [
+        "从问卷保存题目"
+      ],
+      "parameters": {
+        "kind": "multiple",
+        "value": [
+          "a",
+          "b"
+        ]
+      },
+      "source": "@case('从问卷保存题目', '创建并发布问卷、提交答卷；复制至题库；重复复制；比较原数据。', '四种题型及相应答案、完整校验配置', '内容完整，复制初版无规则和实例ID；重复不新增族或版本；问卷、答卷不变。')\n@pytest.mark.parametrize('kind,value', [('single','a'),('multiple',['a','b']),('text','课程评价'),('number',18)])\ndef test_copy_snapshot_preserves_data(client, kind, value):\n    h=login(client)\n    data=question_input(kind,min_value=0,max_value=120,integer=True,min_length=2,max_length=100)\n    sid,qs=survey_with_questions(client,h,[data])\n    assert client.post(f'/api/fill/{sid}/submit',headers=h,json={'answers':{qs[0]['id']:value}}).status_code==201\n    bid=client.post('/api/question-banks',headers=h,json={'name':'复用库'}).json()['id']\n    d=client.app.state.db;before=[list(d[c].find()) for c in ('users','surveys','responses')]\n    body={'survey_id':sid,'instance_id':qs[0]['id']};url=f'/api/question-banks/{bid}/from-survey'\n    r=client.post(url,headers=h,json=body);assert r.status_code==200,r.text\n    v=r.json()['question']['latest_version']\n    assert v['content']=={k:v for k,v in qs[0].items() if k not in ('id','rules','source')}\n    again=client.post(url,headers=h,json=body).json()\n    assert again['added'] is False and '无需重复' in again['message']\n    assert d.bank_questions.count_documents({})==d.question_versions.count_documents({})==1\n    assert before==[list(d[c].find()) for c in ('users','surveys','responses')]\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.1510398000245914,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.7863123000133783,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.013280599960125983,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_4e5c708a0ae3444aa9697b303a3542bd"
+    },
+    {
+      "id": "AUTO-003",
+      "nodeid": "tests/test_bank_copy_messages.py::test_copy_snapshot_preserves_data[text-\\u8bfe\\u7a0b\\u8bc4\\u4ef7]",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "创建并发布问卷、提交答卷；复制至题库；重复复制；比较原数据。",
+      "inputs": "四种题型及相应答案、完整校验配置",
+      "expected": "内容完整，复制初版无规则和实例ID；重复不新增族或版本；问卷、答卷不变。",
+      "categories": [
+        "从问卷保存题目"
+      ],
+      "parameters": {
+        "kind": "text",
+        "value": "课程评价"
+      },
+      "source": "@case('从问卷保存题目', '创建并发布问卷、提交答卷；复制至题库；重复复制；比较原数据。', '四种题型及相应答案、完整校验配置', '内容完整，复制初版无规则和实例ID；重复不新增族或版本；问卷、答卷不变。')\n@pytest.mark.parametrize('kind,value', [('single','a'),('multiple',['a','b']),('text','课程评价'),('number',18)])\ndef test_copy_snapshot_preserves_data(client, kind, value):\n    h=login(client)\n    data=question_input(kind,min_value=0,max_value=120,integer=True,min_length=2,max_length=100)\n    sid,qs=survey_with_questions(client,h,[data])\n    assert client.post(f'/api/fill/{sid}/submit',headers=h,json={'answers':{qs[0]['id']:value}}).status_code==201\n    bid=client.post('/api/question-banks',headers=h,json={'name':'复用库'}).json()['id']\n    d=client.app.state.db;before=[list(d[c].find()) for c in ('users','surveys','responses')]\n    body={'survey_id':sid,'instance_id':qs[0]['id']};url=f'/api/question-banks/{bid}/from-survey'\n    r=client.post(url,headers=h,json=body);assert r.status_code==200,r.text\n    v=r.json()['question']['latest_version']\n    assert v['content']=={k:v for k,v in qs[0].items() if k not in ('id','rules','source')}\n    again=client.post(url,headers=h,json=body).json()\n    assert again['added'] is False and '无需重复' in again['message']\n    assert d.bank_questions.count_documents({})==d.question_versions.count_documents({})==1\n    assert before==[list(d[c].find()) for c in ('users','surveys','responses')]\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.20659139996860176,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.8659177999943495,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.029347799951210618,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_35892ed7b5ad4adbb686c3b1eaab5ffb"
+    },
+    {
+      "id": "AUTO-004",
+      "nodeid": "tests/test_bank_copy_messages.py::test_copy_snapshot_preserves_data[number-18]",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "创建并发布问卷、提交答卷；复制至题库；重复复制；比较原数据。",
+      "inputs": "四种题型及相应答案、完整校验配置",
+      "expected": "内容完整，复制初版无规则和实例ID；重复不新增族或版本；问卷、答卷不变。",
+      "categories": [
+        "从问卷保存题目"
+      ],
+      "parameters": {
+        "kind": "number",
+        "value": 18
+      },
+      "source": "@case('从问卷保存题目', '创建并发布问卷、提交答卷；复制至题库；重复复制；比较原数据。', '四种题型及相应答案、完整校验配置', '内容完整，复制初版无规则和实例ID；重复不新增族或版本；问卷、答卷不变。')\n@pytest.mark.parametrize('kind,value', [('single','a'),('multiple',['a','b']),('text','课程评价'),('number',18)])\ndef test_copy_snapshot_preserves_data(client, kind, value):\n    h=login(client)\n    data=question_input(kind,min_value=0,max_value=120,integer=True,min_length=2,max_length=100)\n    sid,qs=survey_with_questions(client,h,[data])\n    assert client.post(f'/api/fill/{sid}/submit',headers=h,json={'answers':{qs[0]['id']:value}}).status_code==201\n    bid=client.post('/api/question-banks',headers=h,json={'name':'复用库'}).json()['id']\n    d=client.app.state.db;before=[list(d[c].find()) for c in ('users','surveys','responses')]\n    body={'survey_id':sid,'instance_id':qs[0]['id']};url=f'/api/question-banks/{bid}/from-survey'\n    r=client.post(url,headers=h,json=body);assert r.status_code==200,r.text\n    v=r.json()['question']['latest_version']\n    assert v['content']=={k:v for k,v in qs[0].items() if k not in ('id','rules','source')}\n    again=client.post(url,headers=h,json=body).json()\n    assert again['added'] is False and '无需重复' in again['message']\n    assert d.bank_questions.count_documents({})==d.question_versions.count_documents({})==1\n    assert before==[list(d[c].find()) for c in ('users','surveys','responses')]\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.16355150006711483,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.7874537999741733,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.01781050011049956,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_65ba8f4c55ea41e882267cd980b34fd5"
+    },
+    {
+      "id": "AUTO-005",
+      "nodeid": "tests/test_bank_copy_messages.py::test_candidates_membership_and_permissions",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "排除当前题库后查询；加入另一题库、重复加入；尝试跨用户操作。",
+      "inputs": "两个题库、一个自有题目、另一用户",
+      "expected": "候选只含未加入的自有题目；重复明确提示，无新增版本；跨用户404。",
+      "categories": [
+        "已有题目加入和权限"
+      ],
+      "parameters": {},
+      "source": "@case('已有题目加入和权限', '排除当前题库后查询；加入另一题库、重复加入；尝试跨用户操作。', '两个题库、一个自有题目、另一用户', '候选只含未加入的自有题目；重复明确提示，无新增版本；跨用户404。')\ndef test_candidates_membership_and_permissions(client):\n    h,b,q=library(client);other=login(client,'other')\n    b2=client.post('/api/question-banks',headers=h,json={'name':'另一个库'}).json()['id']\n    assert client.get('/api/bank-questions',params={'exclude_bank_id':b},headers=h).json()==[]\n    assert [x['id'] for x in client.get('/api/bank-questions',params={'exclude_bank_id':b2},headers=h).json()]==[q['id']]\n    url=f'/api/question-banks/{b2}/questions/{q[\"id\"]}'\n    assert client.put(url,headers=other).status_code==404\n    assert client.put(url,headers=h).json()['added'] is True\n    assert client.put(url,headers=h).json()['added'] is False\n    assert client.get('/api/bank-questions',params={'exclude_bank_id':b2},headers=h).json()==[]\n    assert client.get('/api/bank-questions',params={'exclude_bank_id':b2},headers=other).status_code==404\n    assert client.app.state.db.question_versions.count_documents({})==1\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.19642519997432828,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 1.5873621000209823,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.03788000007625669,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_c2d80ee41ed04e4db297238deb75bd7e"
+    },
+    {
+      "id": "AUTO-006",
+      "nodeid": "tests/test_bank_copy_messages.py::test_copy_source_and_shared_ownership",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "自有来源题复用；他人尝试复制；共享接收人复制自己问卷中的快照。",
+      "inputs": "所有者、共享接收人、两个题库",
+      "expected": "自有来源不新建版本；不读取他人问卷；共享快照复制为接收人自有题，不改原题。",
+      "categories": [
+        "复制权限和共享边界"
+      ],
+      "parameters": {},
+      "source": "@case('复制权限和共享边界', '自有来源题复用；他人尝试复制；共享接收人复制自己问卷中的快照。', '所有者、共享接收人、两个题库', '自有来源不新建版本；不读取他人问卷；共享快照复制为接收人自有题，不改原题。')\ndef test_copy_source_and_shared_ownership(client):\n    h,b,q=library(client);sid,instance=import_into(client,h,q)\n    b2=client.post('/api/question-banks',headers=h,json={'name':'目标'}).json()['id']\n    payload={'survey_id':sid,'instance_id':instance['id']}\n    r=client.post(f'/api/question-banks/{b2}/from-survey',headers=h,json=payload)\n    assert r.json()['question']['id']==q['id']\n    reader=login(client,'reader');rb=client.post('/api/question-banks',headers=reader,json={'name':'读者题库'}).json()['id']\n    assert client.post(f'/api/question-banks/{rb}/from-survey',headers=reader,json=payload).status_code==404\n    assert client.post(f'/api/question-banks/{b2}/from-survey',headers=reader,json=payload).status_code==404\n    client.post(f'/api/bank-questions/{q[\"id\"]}/shares',headers=h,json={'username':'reader'})\n    rsid,ri=import_into(client,reader,q)\n    client.delete(f'/api/bank-questions/{q[\"id\"]}/shares/reader',headers=h)\n    copied=client.post(f'/api/question-banks/{rb}/from-survey',headers=reader,json={'survey_id':rsid,'instance_id':ri['id']}).json()['question']\n    assert copied['id']!=q['id'] and copied['owned']\n    assert copied['latest_version']['content']==q['latest_version']['content']\n    assert client.app.state.db.question_versions.count_documents({'question_id':q['id']})==1\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.18026860000099987,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 1.6826693000039086,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.03203430003486574,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_dc145f47fb374c2eab61867985de7b46"
+    },
+    {
+      "id": "AUTO-007",
+      "nodeid": "tests/test_bank_copy_messages.py::test_copy_concurrent_and_changed_snapshot",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "并发复制同一草稿题；修改草稿后再次复制；比较旧版本。",
+      "inputs": "4个并发请求，题干修改",
+      "expected": "第一次只有一族一版；内容改变生成独立题，旧版本不变。",
+      "categories": [
+        "复制重试及快照变化"
+      ],
+      "parameters": {},
+      "source": "@case('复制重试及快照变化', '并发复制同一草稿题；修改草稿后再次复制；比较旧版本。', '4个并发请求，题干修改', '第一次只有一族一版；内容改变生成独立题，旧版本不变。')\ndef test_copy_concurrent_and_changed_snapshot(client):\n    h=login(client);sid,qs=survey_with_questions(client,h,[question_input('number')],publish=False)\n    b=client.post('/api/question-banks',headers=h,json={'name':'目标'}).json()['id']\n    url=f'/api/question-banks/{b}/from-survey';body={'survey_id':sid,'instance_id':qs[0]['id']}\n    with ThreadPoolExecutor(max_workers=4) as pool:\n        results=list(pool.map(lambda _:client.post(url,headers=h,json=body),range(4)))\n    assert all(r.status_code==200 for r in results)\n    assert len({r.json()['question']['id'] for r in results})==1\n    old=client.app.state.db.question_versions.find_one()\n    assert client.put(f'/api/surveys/{sid}/questions/{qs[0][\"id\"]}',headers=h,json=question_input('number',title='新题干')).status_code==200\n    assert client.post(url,headers=h,json=body).status_code==200\n    assert client.app.state.db.question_versions.count_documents({})==2\n    assert client.app.state.db.question_versions.find_one({'_id':old['_id']})==old\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.1713111000135541,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.8789294000016525,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.013112600077874959,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_f95d4a8195434262816d9d32b200808a"
+    },
+    {
+      "id": "AUTO-008",
+      "nodeid": "tests/test_bank_copy_messages.py::test_number_messages[-1-\\u8f93\\u5165\\u7684\\u6570\\u5b57\\u4e0d\\u80fd\\u4f4e\\u4e8e\\u6700\\u5c0f\\u503c\\u3002]",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "发布数字题并提交越界值。",
+      "inputs": "下限0、上限120；-1和121",
+      "expected": "422，分别提示不能低于最小值和不能超过最大值。",
+      "categories": [
+        "数字范围中文提示"
+      ],
+      "parameters": {
+        "value": -1,
+        "expected": "输入的数字不能低于最小值。"
+      },
+      "source": "@case('数字范围中文提示', '发布数字题并提交越界值。', '下限0、上限120；-1和121', '422，分别提示不能低于最小值和不能超过最大值。')\n@pytest.mark.parametrize('value,expected',[(-1,'输入的数字不能低于最小值。'),(121,'输入的数字不能超过最大值。')])\ndef test_number_messages(client,value,expected):\n    h=login(client);sid,qs=survey_with_questions(client,h,[question_input('number',min_value=0,max_value=120)])\n    r=client.post(f'/api/fill/{sid}/submit',headers=h,json={'answers':{qs[0]['id']:value}})\n    assert r.status_code==422 and r.json()['detail']['message']==expected\n    assert client.app.state.db.responses.count_documents({})==0\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.16417280002497137,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.8092819999437779,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.01680760004092008,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_ea004e9b112f4bb4a52ba06e04dc6987"
+    },
+    {
+      "id": "AUTO-009",
+      "nodeid": "tests/test_bank_copy_messages.py::test_number_messages[121-\\u8f93\\u5165\\u7684\\u6570\\u5b57\\u4e0d\\u80fd\\u8d85\\u8fc7\\u6700\\u5927\\u503c\\u3002]",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "发布数字题并提交越界值。",
+      "inputs": "下限0、上限120；-1和121",
+      "expected": "422，分别提示不能低于最小值和不能超过最大值。",
+      "categories": [
+        "数字范围中文提示"
+      ],
+      "parameters": {
+        "value": 121,
+        "expected": "输入的数字不能超过最大值。"
+      },
+      "source": "@case('数字范围中文提示', '发布数字题并提交越界值。', '下限0、上限120；-1和121', '422，分别提示不能低于最小值和不能超过最大值。')\n@pytest.mark.parametrize('value,expected',[(-1,'输入的数字不能低于最小值。'),(121,'输入的数字不能超过最大值。')])\ndef test_number_messages(client,value,expected):\n    h=login(client);sid,qs=survey_with_questions(client,h,[question_input('number',min_value=0,max_value=120)])\n    r=client.post(f'/api/fill/{sid}/submit',headers=h,json={'answers':{qs[0]['id']:value}})\n    assert r.status_code==422 and r.json()['detail']['message']==expected\n    assert client.app.state.db.responses.count_documents({})==0\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.16643400001339614,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.7808239000150934,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.04558859998360276,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_a804b556b200430f88294f4224344827"
+    },
+    {
+      "id": "AUTO-010",
+      "nodeid": "tests/test_bank_copy_messages.py::test_validation_and_database_messages",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "提交缺少标题和过长密码；模拟数据库异常与未知路由。",
+      "inputs": "缺少title、17字符密码、读取异常",
+      "expected": "中文JSON错误，不含英文校验结构；故障有日志且返回503。",
+      "categories": [
+        "中文校验及系统错误"
+      ],
+      "parameters": {},
+      "source": "@case('中文校验及系统错误', '提交缺少标题和过长密码；模拟数据库异常与未知路由。', '缺少title、17字符密码、读取异常', '中文JSON错误，不含英文校验结构；故障有日志且返回503。')\ndef test_validation_and_database_messages(client,monkeypatch,caplog):\n    h=login(client)\n    r=client.post('/api/surveys',headers=h,json={})\n    assert r.status_code==422 and r.json()['detail']=='请填写标题。'\n    r=client.post('/api/auth/register',json={'username':'new_user','password':'x'*17})\n    assert '密码' in r.json()['detail'] and '16' in r.json()['detail']\n    assert client.get('/api/not-found').json()['detail']=='没有找到所需内容，或您没有查看权限。'\n    def broken(*args,**kwargs): raise ServerSelectionTimeoutError('injected DB failure')\n    monkeypatch.setattr(Collection,'find_one',broken)\n    with caplog.at_level(logging.ERROR):\n        r=client.post('/api/auth/register',json={'username':'new_user','password':'password123'})\n    assert r.status_code==503 and '暂时' in r.json()['detail']\n    assert 'injected' not in r.text and any(record.exc_info for record in caplog.records)\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.1766790000256151,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.750514000072144,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.03828350000549108,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_2aede5d8664b4d16a03d421041842dff"
+    },
+    {
+      "id": "AUTO-011",
+      "nodeid": "tests/test_phase2_block2.py::test_bank_crud_four_types[single]",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "创建题库与题目；读取、编辑题库；移出再加入；对比MongoDB版本。",
+      "inputs": "四种题型，题库名称更新",
+      "expected": "完整保存内容；稳定题目族；移出不删除版本；可重新加入。",
+      "categories": [
+        "题库管理"
+      ],
+      "parameters": {
+        "kind": "single"
+      },
+      "source": "@case('题库管理', '创建题库与题目；读取、编辑题库；移出再加入；对比MongoDB版本。', '四种题型，题库名称更新', '完整保存内容；稳定题目族；移出不删除版本；可重新加入。')\n@pytest.mark.parametrize('kind', ['single', 'multiple', 'text', 'number'])\ndef test_bank_crud_four_types(client, kind):\n    h, b, q = library(client, kind)\n    assert q['latest_version']['content']['type'] == kind\n    assert client.put('/api/question-banks/'+b, headers=h, json={'name':'更新'}).json()['name'] == '更新'\n    assert len(client.get('/api/question-banks', headers=h).json()) == 1\n    path = f'/api/question-banks/{b}/questions/{q[\"id\"]}'\n    assert client.delete(path, headers=h).status_code == 200\n    assert client.get(f'/api/question-banks/{b}/questions', headers=h).json() == []\n    assert client.get('/api/bank-questions/'+q['id'], headers=h).status_code == 200\n    assert client.put(path, headers=h).status_code == 200\n    assert len(client.get(f'/api/question-banks/{b}/questions', headers=h).json()) == 1\n    assert client.app.state.db.question_versions.count_documents({}) == 1\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.17650200007483363,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.8755883999401703,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.0360769999679178,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_941ff105a3064a1091e01b1aed6926c5"
+    },
+    {
+      "id": "AUTO-012",
+      "nodeid": "tests/test_phase2_block2.py::test_bank_crud_four_types[multiple]",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "创建题库与题目；读取、编辑题库；移出再加入；对比MongoDB版本。",
+      "inputs": "四种题型，题库名称更新",
+      "expected": "完整保存内容；稳定题目族；移出不删除版本；可重新加入。",
+      "categories": [
+        "题库管理"
+      ],
+      "parameters": {
+        "kind": "multiple"
+      },
+      "source": "@case('题库管理', '创建题库与题目；读取、编辑题库；移出再加入；对比MongoDB版本。', '四种题型，题库名称更新', '完整保存内容；稳定题目族；移出不删除版本；可重新加入。')\n@pytest.mark.parametrize('kind', ['single', 'multiple', 'text', 'number'])\ndef test_bank_crud_four_types(client, kind):\n    h, b, q = library(client, kind)\n    assert q['latest_version']['content']['type'] == kind\n    assert client.put('/api/question-banks/'+b, headers=h, json={'name':'更新'}).json()['name'] == '更新'\n    assert len(client.get('/api/question-banks', headers=h).json()) == 1\n    path = f'/api/question-banks/{b}/questions/{q[\"id\"]}'\n    assert client.delete(path, headers=h).status_code == 200\n    assert client.get(f'/api/question-banks/{b}/questions', headers=h).json() == []\n    assert client.get('/api/bank-questions/'+q['id'], headers=h).status_code == 200\n    assert client.put(path, headers=h).status_code == 200\n    assert len(client.get(f'/api/question-banks/{b}/questions', headers=h).json()) == 1\n    assert client.app.state.db.question_versions.count_documents({}) == 1\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.1833214999642223,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.8432120999787003,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.03185989998746663,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_b2e04ace51e746aab0a9ac5f4ef98137"
+    },
+    {
+      "id": "AUTO-013",
+      "nodeid": "tests/test_phase2_block2.py::test_bank_crud_four_types[text]",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "创建题库与题目；读取、编辑题库；移出再加入；对比MongoDB版本。",
+      "inputs": "四种题型，题库名称更新",
+      "expected": "完整保存内容；稳定题目族；移出不删除版本；可重新加入。",
+      "categories": [
+        "题库管理"
+      ],
+      "parameters": {
+        "kind": "text"
+      },
+      "source": "@case('题库管理', '创建题库与题目；读取、编辑题库；移出再加入；对比MongoDB版本。', '四种题型，题库名称更新', '完整保存内容；稳定题目族；移出不删除版本；可重新加入。')\n@pytest.mark.parametrize('kind', ['single', 'multiple', 'text', 'number'])\ndef test_bank_crud_four_types(client, kind):\n    h, b, q = library(client, kind)\n    assert q['latest_version']['content']['type'] == kind\n    assert client.put('/api/question-banks/'+b, headers=h, json={'name':'更新'}).json()['name'] == '更新'\n    assert len(client.get('/api/question-banks', headers=h).json()) == 1\n    path = f'/api/question-banks/{b}/questions/{q[\"id\"]}'\n    assert client.delete(path, headers=h).status_code == 200\n    assert client.get(f'/api/question-banks/{b}/questions', headers=h).json() == []\n    assert client.get('/api/bank-questions/'+q['id'], headers=h).status_code == 200\n    assert client.put(path, headers=h).status_code == 200\n    assert len(client.get(f'/api/question-banks/{b}/questions', headers=h).json()) == 1\n    assert client.app.state.db.question_versions.count_documents({}) == 1\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.16659569996409118,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.8008471999783069,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.030728200101293623,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_55b94d0bc7354095a5db73321e72c3cc"
+    },
+    {
+      "id": "AUTO-014",
+      "nodeid": "tests/test_phase2_block2.py::test_bank_crud_four_types[number]",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "创建题库与题目；读取、编辑题库；移出再加入；对比MongoDB版本。",
+      "inputs": "四种题型，题库名称更新",
+      "expected": "完整保存内容；稳定题目族；移出不删除版本；可重新加入。",
+      "categories": [
+        "题库管理"
+      ],
+      "parameters": {
+        "kind": "number"
+      },
+      "source": "@case('题库管理', '创建题库与题目；读取、编辑题库；移出再加入；对比MongoDB版本。', '四种题型，题库名称更新', '完整保存内容；稳定题目族；移出不删除版本；可重新加入。')\n@pytest.mark.parametrize('kind', ['single', 'multiple', 'text', 'number'])\ndef test_bank_crud_four_types(client, kind):\n    h, b, q = library(client, kind)\n    assert q['latest_version']['content']['type'] == kind\n    assert client.put('/api/question-banks/'+b, headers=h, json={'name':'更新'}).json()['name'] == '更新'\n    assert len(client.get('/api/question-banks', headers=h).json()) == 1\n    path = f'/api/question-banks/{b}/questions/{q[\"id\"]}'\n    assert client.delete(path, headers=h).status_code == 200\n    assert client.get(f'/api/question-banks/{b}/questions', headers=h).json() == []\n    assert client.get('/api/bank-questions/'+q['id'], headers=h).status_code == 200\n    assert client.put(path, headers=h).status_code == 200\n    assert len(client.get(f'/api/question-banks/{b}/questions', headers=h).json()) == 1\n    assert client.app.state.db.question_versions.count_documents({}) == 1\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.19410690001677722,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.7980856000212952,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.0344812999246642,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_9c4b16b956ba4f73b2c8c11d23fe401b"
+    },
+    {
+      "id": "AUTO-015",
+      "nodeid": "tests/test_phase2_block2.py::test_bank_validation_permissions",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "尝试额外字段、无效题目和他人访问；检查数据库。",
+      "inputs": "source伪造、选项不足、其他用户",
+      "expected": "422或404/401；没有无效写入。",
+      "categories": [
+        "题库权限与校验"
+      ],
+      "parameters": {},
+      "source": "@case('题库权限与校验', '尝试额外字段、无效题目和他人访问；检查数据库。', 'source伪造、选项不足、其他用户', '422或404/401；没有无效写入。')\ndef test_bank_validation_permissions(client):\n    h, b, q = library(client)\n    other = login(client, 'other')\n    for payload in ({'content': question_input('number'), 'request_key':'x', 'source':{}},\n                    {'content': {'title':'bad','type':'single'}, 'request_key':'x'}):\n        assert client.post(f'/api/question-banks/{b}/questions', headers=h, json=payload).status_code == 422\n    assert client.get('/api/question-banks').status_code == 401\n    assert client.get(f'/api/question-banks/{b}/questions', headers=other).status_code == 404\n    assert client.put(f'/api/question-banks/{b}/questions/{q[\"id\"]}', headers=other).status_code == 404\n    assert client.get('/api/bank-questions/'+q['id'], headers=other).status_code == 404\n    assert client.app.state.db.bank_questions.count_documents({}) == 1\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.20479180000256747,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 1.4737168001011014,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.01379840006120503,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_cdc42167c32148db9039d79fd916ede5"
+    },
+    {
+      "id": "AUTO-016",
+      "nodeid": "tests/test_registration_integrity.py::test_register_duplicate",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "首次注册，再同名及大小写变体注册；检查用户数。",
+      "inputs": "same_user、SAME_USER",
+      "expected": "201、409、409；只有一条用户；唯一索引存在。",
+      "categories": [
+        "注册唯一性"
+      ],
+      "parameters": {},
+      "source": "@case('注册唯一性', '首次注册，再同名及大小写变体注册；检查用户数。', 'same_user、SAME_USER', '201、409、409；只有一条用户；唯一索引存在。')\ndef test_register_duplicate(client):\n    assert client.post('/api/auth/register', json=BODY).status_code == 201\n    for name in ('same_user', 'SAME_USER'):\n        r = client.post('/api/auth/register', json={**BODY, 'username': name})\n        assert r.status_code == 409 and r.json()['detail'] == '用户名已存在'\n    assert client.app.state.db.users.count_documents({}) == 1\n    assert username_index_ready(client.app.state.db)\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.1687776999315247,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.38789830007590353,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.0391629000660032,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_abe522273b3c49f4b075134f8c77282a"
+    },
+    {
+      "id": "AUTO-017",
+      "nodeid": "tests/test_registration_integrity.py::test_concurrent_duplicate",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "8个请求在密码哈希前汇合，确保均通过预查询后竞争插入。",
+      "inputs": "8次相同用户名",
+      "expected": "只有1个201、7个409；MongoDB只有1条用户。",
+      "categories": [
+        "注册并发唯一性"
+      ],
+      "parameters": {},
+      "source": "@case('注册并发唯一性', '8个请求在密码哈希前汇合，确保均通过预查询后竞争插入。', '8次相同用户名', '只有1个201、7个409；MongoDB只有1条用户。')\ndef test_concurrent_duplicate(client, monkeypatch):\n    from app import auth\n    barrier = Barrier(8)\n    original = auth.digest\n    def synchronize(password, salt):\n        barrier.wait(timeout=20)\n        return original(password, salt)\n    monkeypatch.setattr(auth, 'digest', synchronize)\n    with ThreadPoolExecutor(max_workers=8) as pool:\n        responses = list(pool.map(lambda _: client.post('/api/auth/register', json=BODY), range(8)))\n    assert sorted(r.status_code for r in responses) == [201] + [409]*7\n    assert all(r.json()['detail'] == '用户名已存在' for r in responses if r.status_code == 409)\n    assert client.app.state.db.users.count_documents({}) == 1\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.1672931999200955,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.8002652999712154,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.013004900072701275,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_bc0d7d1fec17461f926dab1b27f52552"
+    },
+    {
+      "id": "AUTO-018",
+      "nodeid": "tests/test_registration_integrity.py::test_existing_duplicates_safe_startup",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "隔离库删除测试索引并植入重复用户；重新启动应用；注册、登录及健康检查。",
+      "inputs": "两条同名历史记录；一个新用户名",
+      "expected": "启动可用；同名409、新账号503、重复登录409；健康降级；所有历史记录保持不变。",
+      "categories": [
+        "历史重复用户保护"
+      ],
+      "parameters": {},
+      "source": "@case('历史重复用户保护', '隔离库删除测试索引并植入重复用户；重新启动应用；注册、登录及健康检查。', '两条同名历史记录；一个新用户名', '启动可用；同名409、新账号503、重复登录409；健康降级；所有历史记录保持不变。')\ndef test_existing_duplicates_safe_startup(client):\n    database = client.app.state.db\n    database.users.drop_index('username_1')\n    database.users.insert_many([{'_id': 'old1', 'username': 'same_user'},\n                                {'_id': 'old2', 'username': 'same_user'}])\n    before = list(database.users.find())\n    app = create_app(Settings(mongo_uri='mongodb://127.0.0.1:27017', database=database.name))\n    with TestClient(app) as restarted:\n        assert restarted.get('/').status_code == 200\n        assert restarted.post('/api/auth/register', json=BODY).status_code == 409\n        r = restarted.post('/api/auth/register', json={**BODY, 'username': 'new_user'})\n        assert r.status_code == 503 and '注册设置' in r.json()['detail']\n        assert restarted.post('/api/auth/login', json=BODY).status_code == 409\n        assert restarted.get('/api/health').json()['registration'] == 'blocked'\n    assert list(database.users.find()) == before\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.16508139995858073,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.24746320000849664,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.03924359998200089,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_b0d5c81dfda345c697954e3bb24b22ab"
+    },
+    {
+      "id": "AUTO-019",
+      "nodeid": "tests/test_registration_integrity.py::test_missing_index_rebuilt",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "在隔离库移除索引后注册；重复请求；检查索引。",
+      "inputs": "空用户集合、缺失索引",
+      "expected": "注册前重建唯一索引，201后409。",
+      "categories": [
+        "缺失索引修复"
+      ],
+      "parameters": {},
+      "source": "@case('缺失索引修复', '在隔离库移除索引后注册；重复请求；检查索引。', '空用户集合、缺失索引', '注册前重建唯一索引，201后409。')\ndef test_missing_index_rebuilt(client):\n    client.app.state.db.users.drop_index('username_1')\n    assert client.post('/api/auth/register', json=BODY).status_code == 201\n    assert username_index_ready(client.app.state.db)\n    assert client.post('/api/auth/register', json=BODY).status_code == 409\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.14147559995763004,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.39767590002156794,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.03310250001959503,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_f881a16f3287448ababaa356450ccf31"
+    },
+    {
+      "id": "AUTO-020",
+      "nodeid": "tests/test_registration_integrity.py::test_nonunique_index_blocks_without_replacement",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "隔离库用非唯一同名索引代替唯一索引；尝试注册。",
+      "inputs": "username_1非唯一",
+      "expected": "503；不删除索引、不写用户。",
+      "categories": [
+        "冲突索引保护"
+      ],
+      "parameters": {},
+      "source": "@case('冲突索引保护', '隔离库用非唯一同名索引代替唯一索引；尝试注册。', 'username_1非唯一', '503；不删除索引、不写用户。')\ndef test_nonunique_index_blocks_without_replacement(client):\n    d = client.app.state.db\n    d.users.drop_index('username_1'); d.users.create_index('username')\n    before = d.users.index_information()\n    assert client.post('/api/auth/register', json=BODY).status_code == 503\n    assert d.users.count_documents({}) == 0\n    assert d.users.index_information() == before\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.15173579996917397,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.024850299931131303,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.03835160005837679,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_8c87f73b447745cdad0515794ec1b958"
+    }
+  ]
+}

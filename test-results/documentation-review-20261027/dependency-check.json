@@ -1,0 +1,6 @@
+{
+  "command": ".venv/Scripts/python.exe -m pip check",
+  "exit_code": 0,
+  "output": "No broken requirements found.",
+  "database_connection": false
+}

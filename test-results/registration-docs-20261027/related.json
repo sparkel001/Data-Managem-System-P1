@@ -1,0 +1,158 @@
+{
+  "executed_at": "2026-10-27T01:32:57.335460+08:00",
+  "exitstatus": 0,
+  "cases": [
+    {
+      "id": "AUTO-001",
+      "nodeid": "tests/test_block9.py::test_documentation_present",
+      "origin": "已有",
+      "type": "自动化单元/文件检查",
+      "categories": [
+        "其他"
+      ],
+      "steps": "检查7份文档存在且长度大于100；检查.env.example。",
+      "inputs": "DATABASE/API/LOGIC/MANUAL_TESTS/REPORT_TEMPLATE/AI_USAGE_LOG/TEST_RESULTS。",
+      "expected": "文档非空且环境示例含MONGODB_URI；仅检查存在性，不证明文档业务覆盖。",
+      "preconditions": "纯函数/本地文件自动测试；无需MongoDB业务数据。",
+      "parameters": {},
+      "source": "def test_documentation_present():\n    root=Path(__file__).parents[1]\n    for name in (\"DATABASE.md\",\"API.md\",\"LOGIC.md\",\"MANUAL_TESTS.md\",\"REPORT_TEMPLATE.md\",\"AI_USAGE_LOG.md\",\"TEST_RESULTS.md\"):\n        assert len((root/\"docs\"/name).read_text(encoding=\"utf-8\")) > 100\n    assert \"MONGODB_URI\" in (root/\".env.example\").read_text()\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.00046529993414878845,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.0029492999892681837,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.00044269999489188194,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": null
+    },
+    {
+      "id": "AUTO-002",
+      "nodeid": "tests/test_document_generators.py::test_preserve_user_manual_records",
+      "origin": "已有",
+      "type": "自动化单元/文件检查",
+      "categories": [
+        "待归类"
+      ],
+      "steps": "执行测试函数，断言见源代码。",
+      "inputs": "见实例参数与源代码。",
+      "expected": "见测试函数的显式断言；尚未人工编目。",
+      "preconditions": "纯函数/本地文件自动测试；无需MongoDB业务数据。",
+      "parameters": {},
+      "source": "def test_preserve_user_manual_records(tmp_path, monkeypatch):\n    (tmp_path / 'docs').mkdir()\n    target = tmp_path / 'docs/MANUAL_TESTS.md'\n    original = '# 人工检查\\n通过（用户报告）；可选计划未执行。\\n'\n    target.write_text(original, encoding='utf-8')\n    monkeypatch.setattr(audit, 'ROOT', tmp_path)\n    audit.build_manual_plan()\n    assert target.read_text(encoding='utf-8') == original\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.01347339991480112,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.01036519999615848,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.0002986999461427331,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": null
+    },
+    {
+      "id": "AUTO-003",
+      "nodeid": "tests/test_document_generators.py::test_generated_cases_do_not_infer_manual_status",
+      "origin": "已有",
+      "type": "自动化单元/文件检查",
+      "categories": [
+        "待归类"
+      ],
+      "steps": "执行测试函数，断言见源代码。",
+      "inputs": "见实例参数与源代码。",
+      "expected": "见测试函数的显式断言；尚未人工编目。",
+      "preconditions": "纯函数/本地文件自动测试；无需MongoDB业务数据。",
+      "parameters": {},
+      "source": "def test_generated_cases_do_not_infer_manual_status():\n    report = json.loads((audit.EVIDENCE / 'cases.json').read_text(encoding='utf-8'))\n    result = audit.build_cases(report)\n    assert '已执行手工测试数量为0' not in result\n    assert '[MANUAL_TESTS.md](MANUAL_TESTS.md)' in result\n    assert '[TEST_CASES_PHASE2.md](TEST_CASES_PHASE2.md)' in result\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.00026700005400925875,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.011447400087490678,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.00023360003251582384,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": null
+    },
+    {
+      "id": "AUTO-004",
+      "nodeid": "tests/test_document_generators.py::test_generator_preserves_later_results",
+      "origin": "已有",
+      "type": "自动化单元/文件检查",
+      "categories": [
+        "待归类"
+      ],
+      "steps": "执行测试函数，断言见源代码。",
+      "inputs": "见实例参数与源代码。",
+      "expected": "见测试函数的显式断言；尚未人工编目。",
+      "preconditions": "纯函数/本地文件自动测试；无需MongoDB业务数据。",
+      "parameters": {},
+      "source": "def test_generator_preserves_later_results(tmp_path, monkeypatch):\n    (tmp_path / 'docs').mkdir()\n    target = tmp_path / 'docs/TEST_RESULTS.md'\n    original = '# 已有结果\\n## 本轮课程六类测试逐项审计\\n旧记录\\n## 后续验证\\n175通过；人工检查另列。\\n'\n    target.write_text(original, encoding='utf-8')\n    (tmp_path / 'docs/MANUAL_TESTS.md').write_text('用户报告检查', encoding='utf-8')\n    evidence = tmp_path / 'evidence'\n    evidence.mkdir()\n    report = json.loads((audit.EVIDENCE / 'cases.json').read_text(encoding='utf-8'))\n    (evidence / 'cases.json').write_text(json.dumps(report), encoding='utf-8')\n    monkeypatch.setattr(audit, 'ROOT', tmp_path)\n    monkeypatch.setattr(audit, 'EVIDENCE', evidence)\n    monkeypatch.setattr(audit, 'business_unchanged', lambda: [])\n    audit.main()\n    assert target.read_text(encoding='utf-8').startswith(original.rstrip())\n    assert (tmp_path / 'docs/MANUAL_TESTS.md').read_text(encoding='utf-8') == '用户报告检查'\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.002383299986831844,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.06342989997938275,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.00027639989275485277,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": null
+    }
+  ]
+}

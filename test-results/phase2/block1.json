@@ -1,0 +1,158 @@
+{
+  "executed_at": "2026-10-22T13:52:22.526813+08:00",
+  "exitstatus": 0,
+  "cases": [
+    {
+      "id": "AUTO-001",
+      "nodeid": "tests/test_phase2_block1.py::test_additive_repeat_legacy",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "保存旧问卷与答卷；执行迁移两次；读取旧接口并比较原文档。",
+      "inputs": "无source的旧问卷和答卷",
+      "expected": "两次迁移成功；旧文档完全不变；旧接口可读。",
+      "categories": [
+        "第二阶段迁移"
+      ],
+      "parameters": {},
+      "source": "@case(\"第二阶段迁移\", \"保存旧问卷与答卷；执行迁移两次；读取旧接口并比较原文档。\", \"无source的旧问卷和答卷\", \"两次迁移成功；旧文档完全不变；旧接口可读。\")\ndef test_additive_repeat_legacy(client):\n    h = login(client)\n    sid = client.post('/api/surveys', headers=h, json={'title': 'legacy'}).json()['id']\n    d = client.app.state.db\n    d.responses.insert_one({'_id': 'legacy', 'survey_id': sid, 'answers': {}})\n    before = [list(d[c].find()) for c in ('users', 'sessions', 'surveys', 'responses')]\n    assert migrate(d) == migrate(d)\n    assert before == [list(d[c].find()) for c in ('users', 'sessions', 'surveys', 'responses')]\n    assert client.get('/api/surveys/'+sid, headers=h).status_code == 200\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.10972489998675883,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.8675069999881089,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.016507000022102147,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_7e6a0a8abc4e4ae58e9d2a6040ccfa3f"
+    },
+    {
+      "id": "AUTO-002",
+      "nodeid": "tests/test_phase2_block1.py::test_migration_retry_and_validation",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "preconditions": "本机真实 MongoDB 可用；每用例新建 UUID 测试库；通过 API 注册登录，业务数据从空库开始。",
+      "steps": "故障注入使索引创建中断；恢复后重复迁移；尝试非法写入。",
+      "inputs": "模拟create_index抛出异常；缺少必要字段的版本",
+      "expected": "可安全重试；新集合验证拒绝非法文档。",
+      "categories": [
+        "第二阶段迁移"
+      ],
+      "parameters": {},
+      "source": "@case(\"第二阶段迁移\", \"故障注入使索引创建中断；恢复后重复迁移；尝试非法写入。\", \"模拟create_index抛出异常；缺少必要字段的版本\", \"可安全重试；新集合验证拒绝非法文档。\")\ndef test_migration_retry_and_validation(client, monkeypatch):\n    from pymongo.synchronous.collection import Collection\n    d = client.app.state.db\n    original = Collection.create_index\n    def fail(self, *args, **kwargs):\n        if self.name == 'bank_questions':\n            raise RuntimeError('injected interruption')\n        return original(self, *args, **kwargs)\n    with monkeypatch.context() as m:\n        m.setattr(Collection, 'create_index', fail)\n        with pytest.raises(RuntimeError): migrate(d)\n    migrate(d)\n    migrate(d)\n    with pytest.raises(WriteError): d.question_versions.insert_one({'_id': 'invalid'})\n    assert d.question_versions.count_documents({}) == 0\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.07322739996016026,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.08356459997594357,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.03718550002668053,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_239e85bca83a487ca3b8e7f94cdab20c"
+    },
+    {
+      "id": "AUTO-003",
+      "nodeid": "tests/test_block9.py::test_offline_docs",
+      "origin": "已有",
+      "type": "自动化API集成测试（真实MongoDB）",
+      "categories": [
+        "其他"
+      ],
+      "steps": "读取/docs、OpenAPI；扫描本地静态文件。",
+      "inputs": "5个本地资源文件。",
+      "expected": "docs200；schema含单题统计路径与QuestionInput；静态文件没有外部http链接。",
+      "preconditions": "本机MongoDB可用；每实例独立UUID测试库。",
+      "parameters": {},
+      "source": "def test_offline_docs(client):\n    assert client.get(\"/docs\").status_code == 200\n    schema=client.get(\"/openapi.json\").json()\n    assert \"/api/surveys/{sid}/stats/{qid}\" in schema[\"paths\"]\n    assert \"QuestionInput\" in schema[\"components\"][\"schemas\"]\n    for asset in (\"index.html\",\"docs.html\",\"app.js\",\"docs.js\",\"style.css\"):\n        content=(Path(__file__).parents[1]/\"app\"/\"static\"/asset).read_text(encoding=\"utf-8\")\n        assert \"https://\" not in content and \"http://\" not in content\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.1087792000034824,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.1762690999894403,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.012865700002294034,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": "survey_system_test_46a2b0cf2f0e4035a3318bba9f6867be"
+    },
+    {
+      "id": "AUTO-004",
+      "nodeid": "tests/test_block9.py::test_documentation_present",
+      "origin": "已有",
+      "type": "自动化单元/文件检查",
+      "categories": [
+        "其他"
+      ],
+      "steps": "检查7份文档存在且长度大于100；检查.env.example。",
+      "inputs": "DATABASE/API/LOGIC/MANUAL_TESTS/REPORT_TEMPLATE/AI_USAGE_LOG/TEST_RESULTS。",
+      "expected": "文档非空且环境示例含MONGODB_URI；仅检查存在性，不证明文档业务覆盖。",
+      "preconditions": "纯函数/本地文件自动测试；无需MongoDB业务数据。",
+      "parameters": {},
+      "source": "def test_documentation_present():\n    root=Path(__file__).parents[1]\n    for name in (\"DATABASE.md\",\"API.md\",\"LOGIC.md\",\"MANUAL_TESTS.md\",\"REPORT_TEMPLATE.md\",\"AI_USAGE_LOG.md\",\"TEST_RESULTS.md\"):\n        assert len((root/\"docs\"/name).read_text(encoding=\"utf-8\")) > 100\n    assert \"MONGODB_URI\" in (root/\".env.example\").read_text()\n",
+      "status": "passed",
+      "phases": [
+        {
+          "phase": "setup",
+          "outcome": "passed",
+          "duration": 0.00019719998817890882,
+          "failure": null
+        },
+        {
+          "phase": "call",
+          "outcome": "passed",
+          "duration": 0.01418940001167357,
+          "failure": null
+        },
+        {
+          "phase": "teardown",
+          "outcome": "passed",
+          "duration": 0.00025189999723806977,
+          "failure": null
+        }
+      ],
+      "observations": [],
+      "database": null
+    }
+  ]
+}
