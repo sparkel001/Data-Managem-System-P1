@@ -1,1 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="0.951" timestamp="2026-10-16T19:28:32.531882+08:00" hostname="LAPTOP-981VB2MG"><testcase classname="tests.test_course_requirements" name="test_create_defaults_persisted" time="0.856" /></testsuite></testsuites>
